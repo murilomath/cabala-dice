@@ -1,16 +1,13 @@
 {
-  "manifest_version": 1,
   "name": "Cabala Dice",
-  "version": "1.0.5",
-  "author": "Murilo Barbosa",
-  "description": "Rolador de dados para o sistema Cabala",
-
-  "extensions": [
-    {
-      "type": "panel",
-      "id": "cabala-dice",
-      "name": "Cabala Dice",
-      "entry": "index.html"
-    }
-  ]
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "author": "Murilo",
+  "description": "Dados personalizados para Cabala RPG",
+  "homepage_url": "https://github.com/murilomath/cabala-dice",
+  "action": {
+    "title": "Cabala Dice",
+    "icon": "icon.svg",
+    "popover": "index.html"
+  }
 }

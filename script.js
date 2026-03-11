@@ -94,7 +94,7 @@ html+="Falhas: "+falhas
 
 displayLocal(html)
 
-sendRoll(html)
+saveRoll(html)
 
 }
 
@@ -113,7 +113,7 @@ let html="Resultado d66: "+a+""+b
 
 displayLocal(html)
 
-sendRoll(html)
+saveRoll(html)
 
 }
 
@@ -123,42 +123,51 @@ return Math.floor(Math.random()*max)+1
 
 }
 
-function sendRoll(result){
+function saveRoll(result){
 
 OBR.player.getName().then(name=>{
 
-OBR.broadcast.sendMessage("cabala-roll",{
-player:name,
-result:result
+OBR.room.getMetadata().then(metadata=>{
+
+let rolls = metadata.rolls || {}
+
+rolls[name] = result
+
+OBR.room.setMetadata({
+rolls:rolls
 })
 
-OBR.notification.show("🎲 "+name+" rolou dados")
+})
 
 })
 
 }
 
-function updatePlayers(){
+function updatePlayers(rolls){
 
 let html=""
 
-for(let p in playerResults){
+for(let p in rolls){
 
-html+="<div class='player'><b>"+p+":</b> "+playerResults[p]+"</div>"
+html+="<div class='player'><b>"+p+":</b> "+rolls[p]+"</div>"
 
 }
 
-document.getElementById("playersList").innerHTML=html
+document.getElementById("playersList").innerHTML = html
 
 }
 
 OBR.onReady(()=>{
 
-OBR.broadcast.onMessage("cabala-roll",(data)=>{
+OBR.room.onMetadataChange(metadata=>{
 
-playerResults[data.player]=data.result
+if(metadata.rolls){
 
-updatePlayers()
+playerResults = metadata.rolls
+
+updatePlayers(playerResults)
+
+}
 
 })
 

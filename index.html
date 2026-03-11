@@ -23,19 +23,20 @@ margin-top:10px;
 font-weight:bold;
 }
 
-#resultado{
-margin-top:10px;
-font-size:18px;
-}
-
-#players{
+#chat{
 margin-top:15px;
 border-top:1px solid #ccc;
 padding-top:10px;
+max-height:250px;
+overflow-y:auto;
+}
+
+.msg{
+margin-bottom:10px;
 }
 
 .player{
-margin-top:4px;
+font-weight:bold;
 }
 
 </style>
@@ -47,6 +48,7 @@ margin-top:4px;
 <h3>Cabala Dice</h3>
 
 <button onclick="rollD66()">d66</button>
+
 <button onclick="addD6()">d6</button>
 
 <div id="pool">0d6</div>
@@ -61,12 +63,7 @@ margin-top:4px;
 
 <button onclick="clearDice()">Limpar</button>
 
-<div id="resultado"></div>
-
-<div id="players">
-<b>Último resultado de cada jogador</b>
-<div id="playersList"></div>
-</div>
+<div id="chat"></div>
 
 <script src="https://unpkg.com/@owlbear-rodeo/sdk"></script>
 <script src="script.js"></script>

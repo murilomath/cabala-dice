@@ -53,10 +53,7 @@ let texto =
 " | Meio: "+meio+
 " | Falhas: "+falhas
 
-addMessage({
-player:"Você",
-text:texto
-})
+sendMessage(texto)
 
 }
 
@@ -67,16 +64,36 @@ let b=random(6)
 
 let texto="Rolou d66 → "+a+""+b
 
-addMessage({
-player:"Você",
-text:texto
-})
+sendMessage(texto)
 
 }
 
 function random(max){
 
 return Math.floor(Math.random()*max)+1
+
+}
+
+function sendMessage(text){
+
+let message={
+player:"Você",
+text:text
+}
+
+addMessage(message)
+
+if(typeof OBR !== "undefined"){
+
+OBR.player.getName().then(name=>{
+
+message.player=name
+
+OBR.broadcast.sendMessage("cabala.chat",message)
+
+})
+
+}
 
 }
 
@@ -94,5 +111,19 @@ div.innerHTML=
 chat.appendChild(div)
 
 chat.scrollTop=chat.scrollHeight
+
+}
+
+if(typeof OBR !== "undefined"){
+
+OBR.onReady(()=>{
+
+OBR.broadcast.onMessage("cabala.chat",(data)=>{
+
+addMessage(data)
+
+})
+
+})
 
 }

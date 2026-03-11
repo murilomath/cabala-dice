@@ -1,13 +1,12 @@
 {
-  "name": "Cabala Dice",
-  "version": "1.0.0",
-  "manifest_version": 1,
-  "author": "Murilo",
-  "description": "Dados personalizados para Cabala RPG",
-  "homepage_url": "https://github.com/murilomath/cabala-dice",
-  "action": {
-    "title": "Cabala Dice",
-    "icon": "icon.svg",
-    "popover": "index.html"
-  }
+"name": "Hello, World!",
+"version": "1.0.0",
+"manifest_version": 1,
+"action": {
+"title": "Hello, World!",
+"icon": "/icon.svg",
+"popover": "/",
+"height": 600,
+"width": 400
+}
 }

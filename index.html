@@ -23,16 +23,20 @@ margin-top:10px;
 font-weight:bold;
 }
 
-.resultado{
+#resultado{
 margin-top:10px;
 font-size:18px;
 }
 
-#history{
+#players{
 margin-top:15px;
-font-size:14px;
 border-top:1px solid #ccc;
 padding-top:10px;
+font-size:14px;
+}
+
+.playerRow{
+margin-bottom:6px;
 }
 
 </style>
@@ -61,14 +65,14 @@ padding-top:10px;
 
 <button onclick="clearDice()">Limpar</button>
 
-<div id="resultado" class="resultado"></div>
+<div id="resultado"></div>
 
-<div id="history"></div>
+<div id="players">
+<b>Último resultado de cada jogador</b>
+<div id="playersList"></div>
+</div>
 
-<!-- SDK do Owlbear -->
 <script src="https://unpkg.com/@owlbear-rodeo/sdk"></script>
-
-<!-- Script da extensão -->
 <script src="script.js"></script>
 
 </body>

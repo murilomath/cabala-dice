@@ -5,11 +5,12 @@
 "action": {
 "title": "Cabala Dice",
 "icon": "icon.svg",
-"popover": "index.html",
+"popover": "/index.html",
 "height": 400,
 "width": 300
 }
 }
+
 
 
 

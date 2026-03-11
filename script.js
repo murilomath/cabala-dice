@@ -165,8 +165,8 @@ let html="Resultado d66: "+a+""+b
 
 addHistory(html)
 
-document.getElementById("resultado").innerHTML =
-html + renderHistory()
+document.getElementById("resultado").innerHTML = html
+document.getElementById("history").innerHTML = renderHistory()
 
 }
 

@@ -1,27 +1,46 @@
-function roll(max){
-return Math.floor(Math.random()*max)+1
+let dice = 0
+let target = 5
+
+function setMode(value){
+target = value
+roll()
 }
 
-function rollD2(){
-alert("D2: "+roll(2))
+function addDie(){
+dice++
+roll()
 }
 
-function rollD3(){
-alert("D3: "+roll(3))
+function clearDice(){
+dice = 0
+document.getElementById("dados").innerHTML = "Dados: 0"
+document.getElementById("resultado").innerHTML = ""
 }
 
-function rollD66(){
-let a=roll(6)
-let b=roll(6)
-alert("D66: "+a+""+b)
+function roll(){
+
+if(dice === 0) return
+
+let resultados = []
+let sucessos = 0
+
+for(let i=0;i<dice;i++){
+
+let r = Math.floor(Math.random()*6)+1
+
+resultados.push(r)
+
+if(r >= target){
+sucessos++
 }
 
-function rollD6(target){
+}
 
-let r=roll(6)
+document.getElementById("dados").innerHTML =
+"Dados: "+dice
 
-let sucesso=r>=target
-
-alert("Resultado: "+r+" | "+(sucesso?"Sucesso":"Falha"))
+document.getElementById("resultado").innerHTML =
+"Rolagem: "+resultados.join(", ") +
+"<br>Sucessos: "+sucessos
 
 }

@@ -2,16 +2,18 @@
   "name": "Cabala Dice",
   "version": "1.0.0",
   "manifest_version": 1,
-  "author": "Murilo Barbosa",
   "description": "Rolador de dados para o sistema Cabala",
+  "author": "Murilo Barbosa",
+
+  "origin": "https://murilomath.github.io/cabala-dice",
 
   "actions": [
     {
-      "id": "cabala-dice-panel",
+      "id": "cabala-dice",
       "type": "panel",
       "label": "Cabala Dice",
-      "icon": "/icon.svg",
-      "path": "/index.html"
+      "icon": "icon.svg",
+      "path": "index.html"
     }
   ]
 }

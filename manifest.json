@@ -1,12 +1,12 @@
 {
-"name": "Hello, World!",
+"name": "Cabala Dice",
 "version": "1.0.0",
 "manifest_version": 1,
 "action": {
-"title": "Hello, World!",
+"title": "Cabala Dice",
 "icon": "/icon.svg",
 "popover": "/",
-"height": 600,
-"width": 400
+"height": 400,
+"width": 300
 }
 }

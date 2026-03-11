@@ -1,84 +1,92 @@
-let pool = []
+let d6pool = 0
 
-function addDie(type){
+function addD6(){
 
-pool.push(type)
-
-updatePool()
-
-}
-
-function updatePool(){
+d6pool++
 
 document.getElementById("pool").innerHTML =
-"Dados: " + pool.join(", ")
+d6pool + "d6"
 
 }
 
 function clearDice(){
 
-pool = []
+d6pool = 0
 
-updatePool()
+document.getElementById("pool").innerHTML =
+"0d6"
 
 document.getElementById("resultado").innerHTML = ""
 
 }
 
+function rollD66(){
+
+let a = random(6)
+let b = random(6)
+
+document.getElementById("resultado").innerHTML =
+"Resultado: " + a + "" + b
+
+}
+
 function roll(mode){
 
-let results = []
+if(d6pool === 0) return
+
+let target = 5
+
+if(mode === "vantagem") target = 4
+if(mode === "desvantagem") target = 6
+
+let resultados = []
+let html = []
+
 let sucessos = 0
+let meio = 0
+let falhas = 0
 
-pool.forEach(die => {
-
-if(die === "d2"){
-
-let r = random(2)
-results.push("d2:"+r)
-
-}
-
-if(die === "d3"){
-
-let r = random(3)
-results.push("d3:"+r)
-
-}
-
-if(die === "d66"){
-
-let r1 = random(6)
-let r2 = random(6)
-results.push("d66:"+r1+""+r2)
-
-}
-
-if(die === "d6"){
+for(let i=0;i<d6pool;i++){
 
 let r = random(6)
 
-let success = false
+resultados.push(r)
 
-if(mode === "normal") success = r >= 5
-if(mode === "vantagem") success = r >= 4
-if(mode === "desvantagem") success = r === 6
+if(r >= target){
 
-if(success) sucessos++
-
-results.push("d6:"+r)
+sucessos++
+html.push("<span class='sucesso'>"+r+"</span>")
 
 }
 
-})
+else if(r === target-1){
 
-let texto = "Resultados:<br>" + results.join(", ")
-
-if(pool.includes("d6")){
-
-texto += "<br>Sucessos (d6): " + sucessos
+meio++
+html.push("<span class='meio'>"+r+"</span>")
 
 }
+
+else if(r === 1){
+
+falhas++
+html.push("<span class='falha'>"+r+"</span>")
+
+}
+
+else{
+
+html.push(r)
+
+}
+
+}
+
+let texto =
+"Resultados: [" + html.join(", ") + "]"
+
+texto += "<br><br>Sucessos: " + sucessos
+texto += "<br>Meio Sucesso: " + meio
+texto += "<br>Falhas: " + falhas
 
 document.getElementById("resultado").innerHTML = texto
 

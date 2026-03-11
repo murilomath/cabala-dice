@@ -1,5 +1,19 @@
 let d6pool = 0
 
+let ready = false
+
+OBR.onReady(()=>{
+
+ready = true
+
+OBR.broadcast.onMessage("cabala.chat",(data)=>{
+
+addMessage(data)
+
+})
+
+})
+
 function addD6(){
 
 d6pool++
@@ -76,6 +90,8 @@ return Math.floor(Math.random()*max)+1
 
 function sendMessage(text){
 
+if(!ready) return
+
 OBR.player.getName().then(name=>{
 
 let message={
@@ -107,13 +123,3 @@ chat.appendChild(div)
 chat.scrollTop=chat.scrollHeight
 
 }
-
-OBR.onReady(()=>{
-
-OBR.broadcast.onMessage("cabala.chat",(data)=>{
-
-addMessage(data)
-
-})
-
-})

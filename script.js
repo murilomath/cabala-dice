@@ -38,13 +38,9 @@ for(let i=0;i<d6pool;i++){
 let r=random(6)
 
 if(i<6){
-
 comuns.push(r)
-
 }else{
-
 maestria.push(r)
-
 }
 
 }
@@ -54,9 +50,7 @@ maestriaFinal=[...maestria]
 for(let i=0;i<maestriaFinal.length;i++){
 
 if(maestriaFinal[i]===1){
-
 maestriaFinal[i]=random(6)
-
 }
 
 }
@@ -79,48 +73,34 @@ let html=""
 
 if(d6pool<=6){
 
-html="Resultados: ["+colorize(finalResults,target)+"]"
+html="Resultados: ["+finalResults.join(", ")+"]"
 
 }else{
 
 html="Resultados:<br>"
-html+="• Comuns ["+colorize(comuns,target)+"]<br>"
+html+="• Comuns ["+comuns.join(", ")+"]<br>"
 html+="• Maestria ["+maestria.join(", ")+"]"
 
 if(JSON.stringify(maestria)!==JSON.stringify(maestriaFinal)){
-html+=" -> ["+colorize(maestriaFinal,target)+"]"
+html+=" -> ["+maestriaFinal.join(", ")+"]"
 }
 
 }
 
 html+="<br><br>"
 html+="Sucessos: "+sucessos+"<br>"
-html+="Meio Sucesso: "+meio+"<br>"
+html+="Meio: "+meio+"<br>"
 html+="Falhas: "+falhas
 
 displayLocal(html)
 
-sendRoll(html,sucessos,meio,falhas)
+sendRoll(html)
 
 }
 
 function displayLocal(html){
 
 document.getElementById("resultado").innerHTML = html
-
-}
-
-function colorize(arr,target){
-
-return arr.map(r=>{
-
-if(r>=target) return "<span style='color:green;font-weight:bold'>"+r+"</span>"
-if(r===target-1) return "<span style='color:orange;font-weight:bold'>"+r+"</span>"
-if(r===1) return "<span style='color:red;font-weight:bold'>"+r+"</span>"
-
-return r
-
-}).join(", ")
 
 }
 
@@ -143,20 +123,13 @@ return Math.floor(Math.random()*max)+1
 
 }
 
-function sendRoll(result,sucessos,meio,falhas){
-
-if(typeof OBR==="undefined") return
+function sendRoll(result){
 
 OBR.player.getName().then(name=>{
 
 OBR.broadcast.sendMessage("cabala-roll",{
-
 player:name,
-result:result,
-sucessos:sucessos,
-meio:meio,
-falhas:falhas
-
+result:result
 })
 
 OBR.notification.show("🎲 "+name+" rolou dados")
@@ -171,15 +144,13 @@ let html=""
 
 for(let p in playerResults){
 
-html+="<div class='playerRow'><b>"+p+":</b> "+playerResults[p]+"</div>"
+html+="<div class='player'><b>"+p+":</b> "+playerResults[p]+"</div>"
 
 }
 
 document.getElementById("playersList").innerHTML=html
 
 }
-
-if(typeof OBR!=="undefined"){
 
 OBR.onReady(()=>{
 
@@ -192,5 +163,3 @@ updatePlayers()
 })
 
 })
-
-}

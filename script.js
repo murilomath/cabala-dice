@@ -13,7 +13,9 @@ d6pool + "d6"
 function clearDice(){
 
 d6pool = 0
+
 document.getElementById("pool").innerHTML = "0d6"
+
 document.getElementById("resultado").innerHTML = ""
 
 }
@@ -110,8 +112,10 @@ html+="Falhas: "+falhas
 
 addHistory(html)
 
-document.getElementById("resultado").innerHTML =
-html + renderHistory()
+document.getElementById("resultado").innerHTML = html
+document.getElementById("history").innerHTML = renderHistory()
+
+sendToTable(html)
 
 }
 
@@ -144,11 +148,11 @@ function renderHistory(){
 
 if(history.length===0) return ""
 
-let html="<hr><b>Últimos lançamentos</b><br>"
+let html="<b>Últimos lançamentos</b><br>"
 
 history.forEach((h,i)=>{
 
-html+="<br>"+(i+1)+") "+h+"<br>"
+html+="<br>"+(i+1)+") "+h
 
 })
 
@@ -168,10 +172,38 @@ addHistory(html)
 document.getElementById("resultado").innerHTML = html
 document.getElementById("history").innerHTML = renderHistory()
 
+sendToTable(html)
+
 }
 
 function random(max){
 
 return Math.floor(Math.random()*max)+1
+
+}
+
+function sendToTable(result){
+
+if(typeof OBR==="undefined") return
+
+OBR.player.getName().then(name=>{
+
+OBR.broadcast.sendMessage("cabala-dice-roll",{
+player:name,
+result:result
+})
+
+})
+
+}
+
+if(typeof OBR!=="undefined"){
+
+OBR.broadcast.onMessage("cabala-dice-roll",(data)=>{
+
+document.getElementById("resultado").innerHTML =
+"<b>"+data.player+" rolou:</b><br>"+data.result
+
+})
 
 }

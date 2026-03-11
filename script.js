@@ -1,5 +1,5 @@
 let d6pool = 0
-let history = []
+let playerResults = {}
 
 function addD6(){
 
@@ -69,15 +69,9 @@ let falhas=0
 
 finalResults.forEach(r=>{
 
-if(r>=target){
-sucessos++
-}
-else if(r===target-1){
-meio++
-}
-else if(r===1){
-falhas++
-}
+if(r>=target) sucessos++
+else if(r===target-1) meio++
+else if(r===1) falhas++
 
 })
 
@@ -104,18 +98,15 @@ html+="Sucessos: "+sucessos+"<br>"
 html+="Meio Sucesso: "+meio+"<br>"
 html+="Falhas: "+falhas
 
-displayResult(html)
+displayLocal(html)
 
-sendNotification(sucessos,meio,falhas)
+sendRoll(html,sucessos,meio,falhas)
 
 }
 
-function displayResult(html){
-
-addHistory(html)
+function displayLocal(html){
 
 document.getElementById("resultado").innerHTML = html
-document.getElementById("history").innerHTML = renderHistory()
 
 }
 
@@ -133,30 +124,6 @@ return r
 
 }
 
-function addHistory(text){
-
-history.unshift(text)
-
-if(history.length>3){
-history.pop()
-}
-
-}
-
-function renderHistory(){
-
-if(history.length===0) return ""
-
-let html="<b>Últimos lançamentos</b><br>"
-
-history.forEach((h,i)=>{
-html+="<br>"+(i+1)+") "+h
-})
-
-return html
-
-}
-
 function rollD66(){
 
 let a=random(6)
@@ -164,9 +131,9 @@ let b=random(6)
 
 let html="Resultado d66: "+a+""+b
 
-displayResult(html)
+displayLocal(html)
 
-sendNotification()
+sendRoll(html)
 
 }
 
@@ -176,27 +143,51 @@ return Math.floor(Math.random()*max)+1
 
 }
 
-function sendNotification(sucessos, meio, falhas){
+function sendRoll(result,sucessos,meio,falhas){
 
-if(typeof OBR === "undefined") return
+if(typeof OBR==="undefined") return
 
-OBR.onReady(() => {
+OBR.player.getName().then(name=>{
 
-OBR.player.getName().then(name => {
+OBR.broadcast.sendMessage("cabala-roll",{
 
-let texto = "🎲 " + name + " rolou dados"
+player:name,
+result:result,
+sucessos:sucessos,
+meio:meio,
+falhas:falhas
 
-if(sucessos !== undefined){
+})
 
-texto += "\nSucessos: " + sucessos +
-" | Meio: " + meio +
-" | Falhas: " + falhas
+OBR.notification.show("🎲 "+name+" rolou dados")
+
+})
 
 }
 
-OBR.notification.show(texto,{
-severity: "info"
-})
+function updatePlayers(){
+
+let html=""
+
+for(let p in playerResults){
+
+html+="<div class='playerRow'><b>"+p+":</b> "+playerResults[p]+"</div>"
+
+}
+
+document.getElementById("playersList").innerHTML=html
+
+}
+
+if(typeof OBR!=="undefined"){
+
+OBR.onReady(()=>{
+
+OBR.broadcast.onMessage("cabala-roll",(data)=>{
+
+playerResults[data.player]=data.result
+
+updatePlayers()
 
 })
 

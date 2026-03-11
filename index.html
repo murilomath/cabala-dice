@@ -14,11 +14,16 @@ padding:10px;
 button{
 width:100%;
 margin:4px 0;
-padding:8px;
+padding:10px;
 font-size:14px;
 }
 
-#dados{
+#pool{
+margin-top:10px;
+font-weight:bold;
+}
+
+#resultado{
 margin-top:10px;
 }
 
@@ -30,25 +35,30 @@ margin-top:10px;
 
 <h3>Cabala Dice</h3>
 
-<h4>Modo</h4>
+<h4>Adicionar Dados</h4>
 
-<button onclick="setMode(6)">Desvantagem (6)</button>
-<button onclick="setMode(5)">Normal (5+)</button>
-<button onclick="setMode(4)">Vantagem (4+)</button>
+<button onclick="addDie('d2')">d2</button>
+<button onclick="addDie('d3')">d3</button>
+<button onclick="addDie('d66')">d66</button>
+<button onclick="addDie('d6')">d6</button>
+
+<div id="pool">
+Nenhum dado selecionado
+</div>
 
 <hr>
 
-<h4>Dados D6</h4>
+<h4>Rolar</h4>
 
-<button onclick="addDie()">+ D6</button>
+<button onclick="roll('desvantagem')">Desvantagem</button>
+<button onclick="roll('normal')">Normal</button>
+<button onclick="roll('vantagem')">Vantagem</button>
+
+<hr>
+
 <button onclick="clearDice()">Limpar</button>
 
-<div id="dados">
-Dados: 0
-</div>
-
-<div id="resultado">
-</div>
+<div id="resultado"></div>
 
 <script src="script.js"></script>
 

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Cabala Dice</title>
+
+<style>
+
+body{
+font-family: sans-serif;
+background:#1e1e1e;
+color:white;
+padding:10px;
+}
+
+button{
+margin:3px;
+padding:6px 10px;
+font-size:14px;
+}
+
+#result{
+margin-top:10px;
+font-size:14px;
+background:#333;
+padding:8px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h3>Cabala Dice</h3>
+
+Quantidade:
+<button onclick="changeDice(-1)">-</button>
+<span id="qty">2</span>
+<button onclick="changeDice(1)">+</button>
+
+<br><br>
+
+Modo:<br>
+
+<label>
+<input type="radio" name="mode" value="normal" checked>
+Normal
+</label>
+
+<label>
+<input type="radio" name="mode" value="adv">
+Vantagem
+</label>
+
+<label>
+<input type="radio" name="mode" value="dis">
+Desvantagem
+</label>
+
+<br><br>
+
+Dados:
+
+<br>
+
+<button onclick="rollD2()">1d2</button>
+<button onclick="rollD3()">1d3</button>
+<button onclick="rollD6()">1d6</button>
+<button onclick="rollD66()">1d66</button>
+
+<div id="result">
+Resultado aparecerá aqui
+</div>
+
+<script src="main.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "name": "Cabala Dice",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "author": "Murilo",
+  "entry": "index.html"
+}

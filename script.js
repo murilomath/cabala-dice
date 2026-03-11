@@ -176,24 +176,28 @@ return Math.floor(Math.random()*max)+1
 
 }
 
-function sendNotification(sucessos,meio,falhas){
+function sendNotification(sucessos, meio, falhas){
 
-if(typeof OBR==="undefined") return
+if(typeof OBR === "undefined") return
 
-OBR.player.getName().then(name=>{
+OBR.onReady(() => {
 
-let texto="🎲 "+name+" rolou dados"
+OBR.player.getName().then(name => {
 
-if(sucessos!==undefined){
+let texto = "🎲 " + name + " rolou dados"
 
-texto+="\nSucessos: "+sucessos+
-" | Meio: "+meio+
-" | Falhas: "+falhas
+if(sucessos !== undefined){
+
+texto += "\nSucessos: " + sucessos +
+" | Meio: " + meio +
+" | Falhas: " + falhas
 
 }
 
 OBR.notification.show(texto,{
-severity:"info"
+severity: "info"
+})
+
 })
 
 })

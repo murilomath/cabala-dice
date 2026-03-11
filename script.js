@@ -1,5 +1,7 @@
 let d6pool = 0
 
+let chatHistory = []
+
 function addD6(){
 
 d6pool++
@@ -76,24 +78,33 @@ return Math.floor(Math.random()*max)+1
 
 function sendMessage(text){
 
-let message={
-player:"Você",
-text:text
+if(typeof OBR==="undefined"){
+
+addMessage({player:"Você",text:text})
+
+return
+
 }
 
-addMessage(message)
+OBR.player.getName().then(async name=>{
 
-if(typeof OBR !== "undefined"){
+let message={
+player:name,
+text:text,
+time:Date.now()
+}
 
-OBR.player.getName().then(name=>{
+let metadata = await OBR.room.getMetadata()
 
-message.player=name
+let chat = metadata.cabalaChat || []
 
-OBR.broadcast.sendMessage("cabala.chat",message)
+chat.push(message)
 
+await OBR.room.setMetadata({
+cabalaChat:chat
 })
 
-}
+})
 
 }
 
@@ -114,13 +125,31 @@ chat.scrollTop=chat.scrollHeight
 
 }
 
+function renderChat(history){
+
+let chat=document.getElementById("chat")
+
+chat.innerHTML=""
+
+history.forEach(m=>{
+
+addMessage(m)
+
+})
+
+}
+
 if(typeof OBR !== "undefined"){
 
-OBR.onReady(()=>{
+OBR.onReady(async ()=>{
 
-OBR.broadcast.onMessage("cabala.chat",(data)=>{
+let metadata = await OBR.room.getMetadata()
 
-addMessage(data)
+renderChat(metadata.cabalaChat || [])
+
+OBR.room.onMetadataChange((metadata)=>{
+
+renderChat(metadata.cabalaChat || [])
 
 })
 

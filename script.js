@@ -70,17 +70,13 @@ let falhas=0
 finalResults.forEach(r=>{
 
 if(r>=target){
-
 sucessos++
-
-}else if(r===target-1){
-
+}
+else if(r===target-1){
 meio++
-
-}else if(r===1){
-
+}
+else if(r===1){
 falhas++
-
 }
 
 })
@@ -98,9 +94,7 @@ html+="• Comuns ["+colorize(comuns,target)+"]<br>"
 html+="• Maestria ["+maestria.join(", ")+"]"
 
 if(JSON.stringify(maestria)!==JSON.stringify(maestriaFinal)){
-
 html+=" -> ["+colorize(maestriaFinal,target)+"]"
-
 }
 
 }
@@ -110,12 +104,18 @@ html+="Sucessos: "+sucessos+"<br>"
 html+="Meio Sucesso: "+meio+"<br>"
 html+="Falhas: "+falhas
 
+displayResult(html)
+
+sendToTable(html)
+
+}
+
+function displayResult(html){
+
 addHistory(html)
 
 document.getElementById("resultado").innerHTML = html
 document.getElementById("history").innerHTML = renderHistory()
-
-sendToTable(html)
 
 }
 
@@ -126,6 +126,7 @@ return arr.map(r=>{
 if(r>=target) return "<span style='color:green;font-weight:bold'>"+r+"</span>"
 if(r===target-1) return "<span style='color:orange;font-weight:bold'>"+r+"</span>"
 if(r===1) return "<span style='color:red;font-weight:bold'>"+r+"</span>"
+
 return r
 
 }).join(", ")
@@ -137,9 +138,7 @@ function addHistory(text){
 history.unshift(text)
 
 if(history.length>3){
-
 history.pop()
-
 }
 
 }
@@ -151,9 +150,7 @@ if(history.length===0) return ""
 let html="<b>Últimos lançamentos</b><br>"
 
 history.forEach((h,i)=>{
-
 html+="<br>"+(i+1)+") "+h
-
 })
 
 return html
@@ -167,10 +164,7 @@ let b=random(6)
 
 let html="Resultado d66: "+a+""+b
 
-addHistory(html)
-
-document.getElementById("resultado").innerHTML = html
-document.getElementById("history").innerHTML = renderHistory()
+displayResult(html)
 
 sendToTable(html)
 
@@ -199,10 +193,15 @@ result:result
 
 if(typeof OBR!=="undefined"){
 
+OBR.onReady(()=>{
+
 OBR.broadcast.onMessage("cabala-dice-roll",(data)=>{
 
-document.getElementById("resultado").innerHTML =
-"<b>"+data.player+" rolou:</b><br>"+data.result
+let html="<b>"+data.player+" rolou:</b><br>"+data.result
+
+displayResult(html)
+
+})
 
 })
 

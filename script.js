@@ -1,24 +1,10 @@
 let d6pool = 0
 
-let ready = false
-
-OBR.onReady(()=>{
-
-ready = true
-
-OBR.broadcast.onMessage("cabala.chat",(data)=>{
-
-addMessage(data)
-
-})
-
-})
-
 function addD6(){
 
 d6pool++
 
-document.getElementById("pool").innerHTML =
+document.getElementById("pool").innerText =
 d6pool + "d6"
 
 }
@@ -27,18 +13,13 @@ function clearDice(){
 
 d6pool = 0
 
-document.getElementById("pool").innerHTML = "0d6"
+document.getElementById("pool").innerText = "0d6"
 
 }
 
 function roll(mode){
 
-if(d6pool===0) return
-
-let target = 5
-
-if(mode==="vantagem") target = 4
-if(mode==="desvantagem") target = 6
+if(d6pool === 0) return
 
 let resultados=[]
 
@@ -48,26 +29,14 @@ resultados.push(random(6))
 
 }
 
-let sucessos=0
-let meio=0
-let falhas=0
-
-resultados.forEach(r=>{
-
-if(r>=target) sucessos++
-else if(r===target-1) meio++
-else if(r===1) falhas++
-
-})
-
 let texto =
 "Rolou "+d6pool+"d6<br>"+
-"Resultados: ["+resultados.join(", ")+"]<br>"+
-"Sucessos: "+sucessos+
-" | Meio: "+meio+
-" | Falhas: "+falhas
+"Resultados: ["+resultados.join(", ")+"]"
 
-sendMessage(texto)
+addMessage({
+player:"Você",
+text:texto
+})
 
 }
 
@@ -78,32 +47,16 @@ let b=random(6)
 
 let texto="Rolou d66 → "+a+""+b
 
-sendMessage(texto)
+addMessage({
+player:"Você",
+text:texto
+})
 
 }
 
 function random(max){
 
 return Math.floor(Math.random()*max)+1
-
-}
-
-function sendMessage(text){
-
-if(!ready) return
-
-OBR.player.getName().then(name=>{
-
-let message={
-player:name,
-text:text
-}
-
-OBR.broadcast.sendMessage("cabala.chat",message)
-
-addMessage(message)
-
-})
 
 }
 
@@ -115,7 +68,7 @@ let div=document.createElement("div")
 
 div.className="msg"
 
-div.innerHTML=
+div.innerHTML =
 "<span class='player'>"+data.player+":</span><br>"+data.text
 
 chat.appendChild(div)

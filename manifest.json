@@ -1,15 +1,9 @@
 {
   "manifest_version": 1,
   "name": "Cabala Dice",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "author": "Murilo Barbosa",
   "description": "Rolador de dados para o sistema Cabala",
-  "actions": [
-    {
-      "id": "cabala-dice",
-      "type": "panel",
-      "label": "Cabala Dice",
-      "path": "index.html"
-    }
-  ]
+  "type": "panel",
+  "entry": "index.html"
 }

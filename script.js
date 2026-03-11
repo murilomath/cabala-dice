@@ -1,46 +1,91 @@
-let dice = 0
-let target = 5
+let pool = []
 
-function setMode(value){
-target = value
-roll()
+function addDie(type){
+
+pool.push(type)
+
+updatePool()
+
 }
 
-function addDie(){
-dice++
-roll()
+function updatePool(){
+
+document.getElementById("pool").innerHTML =
+"Dados: " + pool.join(", ")
+
 }
 
 function clearDice(){
-dice = 0
-document.getElementById("dados").innerHTML = "Dados: 0"
+
+pool = []
+
+updatePool()
+
 document.getElementById("resultado").innerHTML = ""
+
 }
 
-function roll(){
+function roll(mode){
 
-if(dice === 0) return
-
-let resultados = []
+let results = []
 let sucessos = 0
 
-for(let i=0;i<dice;i++){
+pool.forEach(die => {
 
-let r = Math.floor(Math.random()*6)+1
+if(die === "d2"){
 
-resultados.push(r)
-
-if(r >= target){
-sucessos++
-}
+let r = random(2)
+results.push("d2:"+r)
 
 }
 
-document.getElementById("dados").innerHTML =
-"Dados: "+dice
+if(die === "d3"){
 
-document.getElementById("resultado").innerHTML =
-"Rolagem: "+resultados.join(", ") +
-"<br>Sucessos: "+sucessos
+let r = random(3)
+results.push("d3:"+r)
+
+}
+
+if(die === "d66"){
+
+let r1 = random(6)
+let r2 = random(6)
+results.push("d66:"+r1+""+r2)
+
+}
+
+if(die === "d6"){
+
+let r = random(6)
+
+let success = false
+
+if(mode === "normal") success = r >= 5
+if(mode === "vantagem") success = r >= 4
+if(mode === "desvantagem") success = r === 6
+
+if(success) sucessos++
+
+results.push("d6:"+r)
+
+}
+
+})
+
+let texto = "Resultados:<br>" + results.join(", ")
+
+if(pool.includes("d6")){
+
+texto += "<br>Sucessos (d6): " + sucessos
+
+}
+
+document.getElementById("resultado").innerHTML = texto
+
+}
+
+function random(max){
+
+return Math.floor(Math.random()*max)+1
 
 }

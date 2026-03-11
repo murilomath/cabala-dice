@@ -106,7 +106,7 @@ html+="Falhas: "+falhas
 
 displayResult(html)
 
-sendToTable(html)
+sendNotification(sucessos,meio,falhas)
 
 }
 
@@ -166,7 +166,7 @@ let html="Resultado d66: "+a+""+b
 
 displayResult(html)
 
-sendToTable(html)
+sendNotification()
 
 }
 
@@ -176,31 +176,24 @@ return Math.floor(Math.random()*max)+1
 
 }
 
-function sendToTable(result){
+function sendNotification(sucessos,meio,falhas){
 
 if(typeof OBR==="undefined") return
 
 OBR.player.getName().then(name=>{
 
-OBR.broadcast.sendMessage("cabala-dice-roll",{
-player:name,
-result:result
-})
+let texto="🎲 "+name+" rolou dados"
 
-})
+if(sucessos!==undefined){
+
+texto+="\nSucessos: "+sucessos+
+" | Meio: "+meio+
+" | Falhas: "+falhas
 
 }
 
-if(typeof OBR!=="undefined"){
-
-OBR.onReady(()=>{
-
-OBR.broadcast.onMessage("cabala-dice-roll",(data)=>{
-
-let html="<b>"+data.player+" rolou:</b><br>"+data.result
-
-displayResult(html)
-
+OBR.notification.show(texto,{
+severity:"info"
 })
 
 })

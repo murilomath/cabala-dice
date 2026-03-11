@@ -19,7 +19,12 @@ document.getElementById("pool").innerText = "0d6"
 
 function roll(mode){
 
-if(d6pool === 0) return
+if(d6pool===0) return
+
+let target = 5
+
+if(mode==="vantagem") target = 4
+if(mode==="desvantagem") target = 6
 
 let resultados=[]
 
@@ -29,9 +34,24 @@ resultados.push(random(6))
 
 }
 
+let sucessos=0
+let meio=0
+let falhas=0
+
+resultados.forEach(r=>{
+
+if(r>=target) sucessos++
+else if(r===target-1) meio++
+else if(r===1) falhas++
+
+})
+
 let texto =
 "Rolou "+d6pool+"d6<br>"+
-"Resultados: ["+resultados.join(", ")+"]"
+"Resultados: ["+resultados.join(", ")+"]<br>"+
+"Sucessos: "+sucessos+
+" | Meio: "+meio+
+" | Falhas: "+falhas
 
 addMessage({
 player:"Você",
@@ -68,7 +88,7 @@ let div=document.createElement("div")
 
 div.className="msg"
 
-div.innerHTML =
+div.innerHTML=
 "<span class='player'>"+data.player+":</span><br>"+data.text
 
 chat.appendChild(div)

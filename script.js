@@ -1,40 +1,27 @@
-function random(max){
-return Math.floor(Math.random()*max)+1;
+function roll(max){
+return Math.floor(Math.random()*max)+1
 }
 
 function rollD2(){
-let r = random(2);
-alert("D2: "+r);
+alert("D2: "+roll(2))
 }
 
 function rollD3(){
-let r = random(3);
-alert("D3: "+r);
+alert("D3: "+roll(3))
 }
 
 function rollD66(){
-let d1 = random(6);
-let d2 = random(6);
-alert("D66: "+d1+""+d2);
+let a=roll(6)
+let b=roll(6)
+alert("D66: "+a+""+b)
 }
 
-function rollD6(tipo){
+function rollD6(target){
 
-let r = random(6);
-let sucesso=false;
+let r=roll(6)
 
-if(tipo=="normal"){
-sucesso = r>=5;
-}
+let sucesso=r>=target
 
-if(tipo=="vantagem"){
-sucesso = r>=4;
-}
-
-if(tipo=="desvantagem"){
-sucesso = r==6;
-}
-
-alert("D6: "+r+" | "+(sucesso ? "Sucesso" : "Falha"));
+alert("Resultado: "+r+" | "+(sucesso?"Sucesso":"Falha"))
 
 }

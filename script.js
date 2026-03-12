@@ -7,13 +7,30 @@ let d6pool = 0
 let lastMessageTime = 0
 
 function addD6(){
+
+if(d6pool < 12){
 d6pool++
-document.getElementById("pool").innerText = d6pool + "d6"
 }
 
-function clearDice(){
-d6pool = 0
-document.getElementById("pool").innerText = "0d6"
+updatePool()
+
+}
+
+function removeD6(){
+
+if(d6pool > 0){
+d6pool--
+}
+
+updatePool()
+
+}
+
+function updatePool(){
+
+document.getElementById("pool").innerText =
+d6pool + "d6"
+
 }
 
 async function getPlayerName(){
@@ -57,7 +74,7 @@ else if(r===1) falhas++
 })
 
 let texto =
-"Rolou "+d6pool+"d6<br>"+
+player+" rolou "+d6pool+"d6<br>"+
 "Resultados: ["+resultados.join(", ")+"]<br>"+
 "Sucessos: "+sucessos+
 " | Meio: "+meio+
@@ -74,7 +91,8 @@ let player = await getPlayerName()
 let a=random(6)
 let b=random(6)
 
-let texto="Rolou d66 → "+a+""+b
+let texto =
+player+" rolou d66 → "+a+""+b
 
 sendMessage(player,texto)
 
@@ -154,7 +172,8 @@ addMessage(msg)
 
 lastMessageTime = msg.time
 
-window.scrollTo(0, document.body.scrollHeight)
+let chatBox=document.getElementById("chat")
+chatBox.scrollTop = chatBox.scrollHeight
 
 }
 

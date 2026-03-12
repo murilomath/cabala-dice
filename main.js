@@ -1,4 +1,4 @@
-import OBR from "@owlbear-rodeo/sdk"
+import OBR from "https://unpkg.com/@owlbear-rodeo/sdk@latest/dist/index.mjs"
 import {rollD6,countResults,rollD66} from "./modules/dice.js"
 import {addLog,listenLogs} from "./modules/log.js"
 

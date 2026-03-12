@@ -16,15 +16,25 @@ d6pool = 0
 document.getElementById("pool").innerText = "0d6"
 }
 
+async function getPlayerName(){
+
+let name="Jogador"
+
+if(typeof OBR !== "undefined"){
+try{
+name = await OBR.player.getName()
+}catch(e){}
+}
+
+return name
+
+}
+
 async function roll(mode){
 
 if(d6pool===0) return
 
-let player="Você"
-
-if(typeof OBR !== "undefined"){
-player = await OBR.player.getName()
-}
+let player = await getPlayerName()
 
 let target = 5
 if(mode==="vantagem") target = 4
@@ -59,11 +69,7 @@ sendMessage(player,texto)
 
 async function rollD66(){
 
-let player="Você"
-
-if(typeof OBR !== "undefined"){
-player = await OBR.player.getName()
-}
+let player = await getPlayerName()
 
 let a=random(6)
 let b=random(6)
@@ -126,8 +132,6 @@ div.innerHTML =
 
 chat.appendChild(div)
 
-chat.scrollTop = chat.scrollHeight
-
 }
 
 async function loadChat(){
@@ -149,6 +153,8 @@ if(msg.time > lastMessageTime){
 addMessage(msg)
 
 lastMessageTime = msg.time
+
+window.scrollTo(0, document.body.scrollHeight)
 
 }
 

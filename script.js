@@ -5,6 +5,21 @@ const URL = "https://api.jsonbin.io/v3/b/" + BIN_ID
 
 let d6pool = 0
 let lastMessageTime = 0
+let playerName = "Jogador"
+
+async function initPlayer(){
+
+if(typeof OBR !== "undefined"){
+
+try{
+
+playerName = await OBR.player.getName()
+
+}catch(e){}
+
+}
+
+}
 
 function addD6(){
 
@@ -33,25 +48,9 @@ d6pool + "d6"
 
 }
 
-async function getPlayerName(){
-
-let name="Jogador"
-
-if(typeof OBR !== "undefined"){
-try{
-name = await OBR.player.getName()
-}catch(e){}
-}
-
-return name
-
-}
-
 async function roll(mode){
 
 if(d6pool===0) return
-
-let player = await getPlayerName()
 
 let target = 5
 if(mode==="vantagem") target = 4
@@ -74,32 +73,32 @@ else if(r===1) falhas++
 })
 
 let texto =
-player+" rolou "+d6pool+"d6<br>"+
+"Rolou "+d6pool+"d6<br>"+
 "Resultados: ["+resultados.join(", ")+"]<br>"+
 "Sucessos: "+sucessos+
 " | Meio: "+meio+
 " | Falhas: "+falhas
 
-sendMessage(player,texto)
+sendMessage(playerName,texto)
 
 }
 
 async function rollD66(){
 
-let player = await getPlayerName()
-
 let a=random(6)
 let b=random(6)
 
 let texto =
-player+" rolou d66 → "+a+""+b
+"Rolou d66 → "+a+""+b
 
-sendMessage(player,texto)
+sendMessage(playerName,texto)
 
 }
 
 function random(max){
+
 return Math.floor(Math.random()*max)+1
+
 }
 
 async function sendMessage(player,text){
@@ -181,6 +180,14 @@ chatBox.scrollTop = chatBox.scrollHeight
 
 }
 
-setInterval(loadChat,2000)
+async function start(){
+
+await initPlayer()
 
 loadChat()
+
+setInterval(loadChat,2000)
+
+}
+
+start()

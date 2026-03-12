@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
-<head>
 
+<head>
 <meta charset="UTF-8">
 <title>Cabala Dice</title>
 
@@ -11,7 +11,7 @@ body{
 margin:0;
 font-family:sans-serif;
 background:#1e1e1e;
-color:#eaeaea;
+color:white;
 }
 
 #app{
@@ -28,13 +28,14 @@ border-bottom:1px solid #444;
 
 .row{
 display:flex;
+width:100%;
 gap:6px;
 margin-bottom:6px;
 }
 
 button{
 flex:1;
-padding:10px;
+padding:12px;
 font-size:14px;
 background:#333;
 border:1px solid #555;
@@ -44,6 +45,12 @@ cursor:pointer;
 
 button:hover{
 background:#444;
+}
+
+#pool{
+text-align:center;
+margin-bottom:6px;
+font-weight:bold;
 }
 
 #chat{
@@ -71,17 +78,17 @@ color:#7fd1ff;
 
 <div id="controls">
 
+<div id="pool">0d6</div>
+
 <div class="row">
-<button onclick="removeD6()"><</button>
-<button id="pool">0d6</button>
-<button onclick="rollD66()">d66</button>
-<button onclick="addD6()">></button>
+<button onclick="addD6()">D6</button>
+<button onclick="rollD66()">D66</button>
 </div>
 
 <div class="row">
-<button onclick="roll('desvantagem')">Desvantagem</button>
+<button onclick="roll('desvantagem')">Desv.</button>
 <button onclick="roll('normal')">Normal</button>
-<button onclick="roll('vantagem')">Vantagem</button>
+<button onclick="roll('vantagem')">Vant.</button>
 </div>
 
 </div>

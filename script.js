@@ -1,3 +1,8 @@
+const BIN_ID = "69b2042cc3097a1dd519d875"
+const API_KEY = "$2a$10$HOVUh/bHfj0omLxLjV4MkOg61K7Eh9vOJJ8arytfEuqmsqHGRCIh."
+
+const URL = "https://api.jsonbin.io/v3/b/" + BIN_ID
+
 let d6pool = 0
 
 function addD6(){
@@ -76,31 +81,42 @@ return Math.floor(Math.random()*max)+1
 
 async function sendMessage(text){
 
-if(typeof OBR==="undefined"){
+let player="Você"
 
-addMessage({player:"Você",text:text})
-
-return
-
+if(typeof OBR !== "undefined"){
+player = await OBR.player.getName()
 }
 
-let name = await OBR.player.getName()
+let res = await fetch(URL,{
+headers:{
+"X-Master-Key":API_KEY
+}
+})
 
-let message = {
-player:name,
+let data = await res.json()
+
+let chat = data.record.chat || []
+
+chat.push({
+player:player,
 text:text,
 time:Date.now()
+})
+
+if(chat.length > 50){
+chat.shift()
 }
 
-let metadata = await OBR.room.getMetadata()
-
-let chat = metadata.cabalaChat || []
-
-chat.push(message)
-
-await OBR.room.setMetadata({
-cabalaChat:chat
+await fetch(URL,{
+method:"PUT",
+headers:{
+"Content-Type":"application/json",
+"X-Master-Key":API_KEY
+},
+body:JSON.stringify({chat:chat})
 })
+
+loadChat()
 
 }
 
@@ -121,30 +137,24 @@ chat.scrollTop=chat.scrollHeight
 
 }
 
-function renderChat(history){
+async function loadChat(){
+
+let res = await fetch(URL,{
+headers:{
+"X-Master-Key":API_KEY
+}
+})
+
+let data = await res.json()
 
 let chat=document.getElementById("chat")
 
 chat.innerHTML=""
 
-history.forEach(addMessage)
+data.record.chat.forEach(addMessage)
 
 }
 
-if(typeof OBR!=="undefined"){
+setInterval(loadChat,2000)
 
-OBR.onReady(async ()=>{
-
-let metadata = await OBR.room.getMetadata()
-
-renderChat(metadata.cabalaChat || [])
-
-OBR.room.onMetadataChange((metadata)=>{
-
-renderChat(metadata.cabalaChat || [])
-
-})
-
-})
-
-}
+loadChat()

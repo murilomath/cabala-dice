@@ -13,6 +13,8 @@ if(typeof OBR !== "undefined"){
 
 try{
 
+await OBR.onReady()
+
 playerName = await OBR.player.getName()
 
 }catch(e){}
@@ -96,9 +98,7 @@ sendMessage(playerName,texto)
 }
 
 function random(max){
-
 return Math.floor(Math.random()*max)+1
-
 }
 
 async function sendMessage(player,text){

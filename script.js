@@ -22,9 +22,15 @@ document.getElementById("pool").innerText = "0d6"
 
 }
 
-function roll(mode){
+async function roll(mode){
 
 if(d6pool===0) return
+
+let player="Você"
+
+if(typeof OBR !== "undefined"){
+player = await OBR.player.getName()
+}
 
 let target = 5
 
@@ -52,24 +58,30 @@ else if(r===1) falhas++
 })
 
 let texto =
-"Rolou "+d6pool+"d6<br>"+
+player+" rolou "+d6pool+"d6<br>"+
 "Resultados: ["+resultados.join(", ")+"]<br>"+
 "Sucessos: "+sucessos+
 " | Meio: "+meio+
 " | Falhas: "+falhas
 
-sendMessage(texto)
+sendMessage(player,texto)
 
 }
 
-function rollD66(){
+async function rollD66(){
+
+let player="Você"
+
+if(typeof OBR !== "undefined"){
+player = await OBR.player.getName()
+}
 
 let a=random(6)
 let b=random(6)
 
-let texto="Rolou d66 → "+a+""+b
+let texto=player+" rolou d66 → "+a+""+b
 
-sendMessage(texto)
+sendMessage(player,texto)
 
 }
 
@@ -79,13 +91,7 @@ return Math.floor(Math.random()*max)+1
 
 }
 
-async function sendMessage(text){
-
-let player="Você"
-
-if(typeof OBR !== "undefined"){
-player = await OBR.player.getName()
-}
+async function sendMessage(player,text){
 
 let res = await fetch(URL,{
 headers:{
@@ -128,16 +134,18 @@ let div=document.createElement("div")
 
 div.className="msg"
 
-div.innerHTML =
-"<span class='player'>"+data.player+":</span><br>"+data.text
+div.innerHTML = data.text
 
 chat.appendChild(div)
-
-chat.scrollTop=chat.scrollHeight
 
 }
 
 async function loadChat(){
+
+let chatBox=document.getElementById("chat")
+
+let scrollPosition = chatBox.scrollTop
+let scrollHeight = chatBox.scrollHeight
 
 let res = await fetch(URL,{
 headers:{
@@ -147,11 +155,15 @@ headers:{
 
 let data = await res.json()
 
-let chat=document.getElementById("chat")
-
-chat.innerHTML=""
+chatBox.innerHTML=""
 
 data.record.chat.forEach(addMessage)
+
+if(scrollPosition + 20 >= scrollHeight){
+chatBox.scrollTop = chatBox.scrollHeight
+}else{
+chatBox.scrollTop = scrollPosition
+}
 
 }
 

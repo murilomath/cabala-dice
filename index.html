@@ -1,12 +1,67 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 
 <meta charset="UTF-8">
 <title>Cabala Dice</title>
 
-<link rel="stylesheet" href="style.css">
+<style>
+
+body{
+margin:0;
+font-family:sans-serif;
+background:#1e1e1e;
+color:#eaeaea;
+}
+
+#app{
+display:flex;
+flex-direction:column;
+height:100vh;
+}
+
+#controls{
+padding:10px;
+background:#2a2a2a;
+border-bottom:1px solid #444;
+}
+
+.row{
+display:flex;
+gap:6px;
+margin-bottom:6px;
+}
+
+button{
+flex:1;
+padding:10px;
+font-size:14px;
+background:#333;
+border:1px solid #555;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#444;
+}
+
+#chat{
+flex:1;
+overflow-y:auto;
+padding:10px;
+}
+
+.msg{
+margin-bottom:14px;
+}
+
+.player{
+font-weight:bold;
+color:#7fd1ff;
+}
+
+</style>
 
 </head>
 
@@ -16,24 +71,17 @@
 
 <div id="controls">
 
+<div class="row">
+<button onclick="removeD6()"><</button>
+<button id="pool">0d6</button>
 <button onclick="rollD66()">d66</button>
-
-<div class="dice-control">
-
-<button onclick="removeD6()">-</button>
-
-<div id="pool">0d6</div>
-
-<button onclick="addD6()">+</button>
-
+<button onclick="addD6()">></button>
 </div>
 
-<div class="roll-buttons">
-
-<button onclick="roll('desvantagem')">Desv.</button>
+<div class="row">
+<button onclick="roll('desvantagem')">Desvantagem</button>
 <button onclick="roll('normal')">Normal</button>
-<button onclick="roll('vantagem')">Vant.</button>
-
+<button onclick="roll('vantagem')">Vantagem</button>
 </div>
 
 </div>

@@ -4,22 +4,16 @@ const API_KEY = "$2a$10$HOVUh/bHfj0omLxLjV4MkOg61K7Eh9vOJJ8arytfEuqmsqHGRCIh."
 const URL = "https://api.jsonbin.io/v3/b/" + BIN_ID
 
 let d6pool = 0
+let lastMessageTime = 0
 
 function addD6(){
-
 d6pool++
-
-document.getElementById("pool").innerText =
-d6pool + "d6"
-
+document.getElementById("pool").innerText = d6pool + "d6"
 }
 
 function clearDice(){
-
 d6pool = 0
-
 document.getElementById("pool").innerText = "0d6"
-
 }
 
 async function roll(mode){
@@ -33,16 +27,13 @@ player = await OBR.player.getName()
 }
 
 let target = 5
-
 if(mode==="vantagem") target = 4
 if(mode==="desvantagem") target = 6
 
 let resultados=[]
 
 for(let i=0;i<d6pool;i++){
-
 resultados.push(random(6))
-
 }
 
 let sucessos=0
@@ -50,15 +41,13 @@ let meio=0
 let falhas=0
 
 resultados.forEach(r=>{
-
 if(r>=target) sucessos++
 else if(r===target-1) meio++
 else if(r===1) falhas++
-
 })
 
 let texto =
-player+" rolou "+d6pool+"d6<br>"+
+"Rolou "+d6pool+"d6<br>"+
 "Resultados: ["+resultados.join(", ")+"]<br>"+
 "Sucessos: "+sucessos+
 " | Meio: "+meio+
@@ -79,16 +68,14 @@ player = await OBR.player.getName()
 let a=random(6)
 let b=random(6)
 
-let texto=player+" rolou d66 → "+a+""+b
+let texto="Rolou d66 → "+a+""+b
 
 sendMessage(player,texto)
 
 }
 
 function random(max){
-
 return Math.floor(Math.random()*max)+1
-
 }
 
 async function sendMessage(player,text){
@@ -103,11 +90,13 @@ let data = await res.json()
 
 let chat = data.record.chat || []
 
-chat.push({
+let message={
 player:player,
 text:text,
 time:Date.now()
-})
+}
+
+chat.push(message)
 
 if(chat.length > 50){
 chat.shift()
@@ -122,8 +111,6 @@ headers:{
 body:JSON.stringify({chat:chat})
 })
 
-loadChat()
-
 }
 
 function addMessage(data){
@@ -134,18 +121,16 @@ let div=document.createElement("div")
 
 div.className="msg"
 
-div.innerHTML = data.text
+div.innerHTML =
+"<span class='player'>"+data.player+":</span><br>"+data.text
 
 chat.appendChild(div)
+
+chat.scrollTop = chat.scrollHeight
 
 }
 
 async function loadChat(){
-
-let chatBox=document.getElementById("chat")
-
-let scrollPosition = chatBox.scrollTop
-let scrollHeight = chatBox.scrollHeight
 
 let res = await fetch(URL,{
 headers:{
@@ -155,15 +140,19 @@ headers:{
 
 let data = await res.json()
 
-chatBox.innerHTML=""
+let chat = data.record.chat || []
 
-data.record.chat.forEach(addMessage)
+chat.forEach(msg=>{
 
-if(scrollPosition + 20 >= scrollHeight){
-chatBox.scrollTop = chatBox.scrollHeight
-}else{
-chatBox.scrollTop = scrollPosition
+if(msg.time > lastMessageTime){
+
+addMessage(msg)
+
+lastMessageTime = msg.time
+
 }
+
+})
 
 }
 

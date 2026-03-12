@@ -1,13 +1,20 @@
 let d6pool = 0
 
 function addD6(){
+
 d6pool++
-document.getElementById("pool").innerText = d6pool + "d6"
+
+document.getElementById("pool").innerText =
+d6pool + "d6"
+
 }
 
 function clearDice(){
+
 d6pool = 0
+
 document.getElementById("pool").innerText = "0d6"
+
 }
 
 function roll(mode){
@@ -15,13 +22,16 @@ function roll(mode){
 if(d6pool===0) return
 
 let target = 5
+
 if(mode==="vantagem") target = 4
 if(mode==="desvantagem") target = 6
 
 let resultados=[]
 
 for(let i=0;i<d6pool;i++){
+
 resultados.push(random(6))
+
 }
 
 let sucessos=0
@@ -29,9 +39,11 @@ let meio=0
 let falhas=0
 
 resultados.forEach(r=>{
+
 if(r>=target) sucessos++
 else if(r===target-1) meio++
 else if(r===1) falhas++
+
 })
 
 let texto =
@@ -41,7 +53,7 @@ let texto =
 " | Meio: "+meio+
 " | Falhas: "+falhas
 
-sendRoll(texto)
+sendMessage(texto)
 
 }
 
@@ -50,32 +62,44 @@ function rollD66(){
 let a=random(6)
 let b=random(6)
 
-sendRoll("Rolou d66 → "+a+""+b)
+let texto="Rolou d66 → "+a+""+b
+
+sendMessage(texto)
 
 }
 
 function random(max){
+
 return Math.floor(Math.random()*max)+1
+
 }
 
-function sendRoll(text){
+async function sendMessage(text){
 
 if(typeof OBR==="undefined"){
+
 addMessage({player:"Você",text:text})
+
 return
+
 }
 
-OBR.player.getName().then(name=>{
+let name = await OBR.player.getName()
 
-let msg={
+let message = {
 player:name,
-text:text
+text:text,
+time:Date.now()
 }
 
-addMessage(msg)
+let metadata = await OBR.room.getMetadata()
 
-OBR.broadcast.sendMessage("cabala.roll",msg)
+let chat = metadata.cabalaChat || []
 
+chat.push(message)
+
+await OBR.room.setMetadata({
+cabalaChat:chat
 })
 
 }
@@ -100,33 +124,20 @@ chat.scrollTop=chat.scrollHeight
 function renderChat(history){
 
 let chat=document.getElementById("chat")
+
 chat.innerHTML=""
 
 history.forEach(addMessage)
 
 }
 
+if(typeof OBR!=="undefined"){
+
 OBR.onReady(async ()=>{
-
-OBR.broadcast.onMessage("cabala.roll", async (data)=>{
-
-let role = await OBR.player.getRole()
-
-if(role==="GM"){
 
 let metadata = await OBR.room.getMetadata()
 
-let chat = metadata.cabalaChat || []
-
-chat.push(data)
-
-await OBR.room.setMetadata({
-cabalaChat:chat
-})
-
-}
-
-})
+renderChat(metadata.cabalaChat || [])
 
 OBR.room.onMetadataChange((metadata)=>{
 
@@ -135,3 +146,5 @@ renderChat(metadata.cabalaChat || [])
 })
 
 })
+
+}

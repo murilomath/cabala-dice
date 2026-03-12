@@ -33,16 +33,6 @@ updatePool()
 
 }
 
-function removeD6(){
-
-if(d6pool > 0){
-d6pool--
-}
-
-updatePool()
-
-}
-
 function updatePool(){
 
 document.getElementById("pool").innerText =
@@ -90,8 +80,7 @@ async function rollD66(){
 let a=random(6)
 let b=random(6)
 
-let texto =
-"Rolou d66 → "+a+""+b
+let texto = "Rolou d66 → "+a+""+b
 
 sendMessage(playerName,texto)
 

@@ -1,68 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="UTF-8">
+
 <title>Cabala Dice</title>
 
-<style>
-
-body{
-font-family:sans-serif;
-padding:10px;
-margin:0;
-}
-
-button{
-width:100%;
-margin:5px 0;
-padding:10px;
-font-size:14px;
-}
-
-#pool{
-margin-top:10px;
-font-weight:bold;
-}
-
-#chat{
-margin-top:15px;
-border-top:1px solid #ccc;
-padding-top:10px;
-}
-
-.msg{
-margin-bottom:10px;
-}
-
-.player{
-font-weight:bold;
-}
-
-</style>
+<link rel="stylesheet" href="style.css">
 
 </head>
 
 <body>
 
-<h3>Cabala Dice</h3>
+<div id="app">
+
+<div id="controls">
 
 <button onclick="rollD66()">d66</button>
 
-<button onclick="addD6()">d6</button>
+<div class="dice-control">
+
+<button onclick="removeD6()">-</button>
 
 <div id="pool">0d6</div>
 
-<hr>
+<button onclick="addD6()">+</button>
 
-<button onclick="roll('desvantagem')">Desvantagem</button>
+</div>
+
+<div class="roll-buttons">
+
+<button onclick="roll('desvantagem')">Desv.</button>
 <button onclick="roll('normal')">Normal</button>
-<button onclick="roll('vantagem')">Vantagem</button>
+<button onclick="roll('vantagem')">Vant.</button>
 
-<hr>
+</div>
 
-<button onclick="clearDice()">Limpar</button>
+</div>
 
 <div id="chat"></div>
+
+</div>
 
 <script src="https://unpkg.com/@owlbear-rodeo/sdk"></script>
 <script src="script.js"></script>

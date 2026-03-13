@@ -1,6 +1,5 @@
-const OBR = globalThis.OBR;
-
 const META_KEY = "cabala-dice/history";
+const LOCAL_KEY = "cabala-dice/local-history";
 const diceCountEl = document.getElementById("dice-count");
 const resultEl = document.getElementById("result");
 const historyListEl = document.getElementById("history-list");
@@ -57,19 +56,35 @@ function renderHistory(history, ownId) {
 
 function saveLocalRoll(entry) {
   const key = "cabala-dice/local-history";
-  const raw = window.localStorage.getItem(key);
-  const existing = raw ? JSON.parse(raw) : [];
-  const others = existing.filter((item) => item.playerId !== entry.playerId);
+  function readLocalHistory() {
+  try {
+    const raw = globalThis.localStorage?.getItem(LOCAL_KEY);
+    const history = raw ? JSON.parse(raw) : [];
+    return Array.isArray(history) ? history : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalHistory(history) {
+  try {
+    globalThis.localStorage?.setItem(LOCAL_KEY, JSON.stringify(history));
+  } catch {
+    // sandboxed iframes can block localStorage
+  }
+}
   const next = [entry, ...others].slice(0, 20);
-  window.localStorage.setItem(key, JSON.stringify(next));
+  writeLocalHistory(next);
   renderHistory(next, state.playerId);
 }
 
 async function saveRoll(entry) {
-  if (!state.obrReady) {
+const OBR = globalThis.OBR;
+  if (!state.obrReady || !OBR) {    
     saveLocalRoll(entry);
     return;
   }
+  
   const metadata = await OBR.room.getMetadata();
   const existing = Array.isArray(metadata[META_KEY]) ? metadata[META_KEY] : [];
   const others = existing.filter((item) => item.playerId !== entry.playerId);
@@ -141,17 +156,21 @@ function wireControls() {
 }
 
 function initLocalMode() {
-  const raw = window.localStorage.getItem("cabala-dice/local-history");
-  const history = raw ? JSON.parse(raw) : [];
+  const history = readLocalHistory();
   renderHistory(history, state.playerId);
   const own = history.find((entry) => entry.playerId === state.playerId);
   if (own) renderOwnResult(own);
 }
 
-wireControls();
-initLocalMode();
-
-if (OBR?.onReady) {
+function initObrWhenReady(attempt = 0) {
+  const OBR = globalThis.OBR;
+  if (!OBR?.onReady) {
+    if (attempt < 100) {
+      setTimeout(() => initObrWhenReady(attempt + 1), 50);
+    }
+    return;
+  }
+  
   OBR.onReady(async () => {
     const player = await OBR.player.getPlayer();
     state.obrReady = true;
@@ -165,9 +184,13 @@ if (OBR?.onReady) {
     const own = history.find((entry) => entry.playerId === state.playerId);
     if (own) renderOwnResult(own);
 
- OBR.room.onMetadataChange((nextMetadata) => {
+    OBR.room.onMetadataChange((nextMetadata) => {
       const nextHistory = Array.isArray(nextMetadata[META_KEY]) ? nextMetadata[META_KEY] : [];
       renderHistory(nextHistory, state.playerId);
     });
-});
+  });
 }
+
+wireControls();
+initLocalMode();
+initObrWhenReady();

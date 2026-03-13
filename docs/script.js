@@ -54,9 +54,7 @@ function renderHistory(history, ownId) {
   });
 }
 
-function saveLocalRoll(entry) {
-  const key = "cabala-dice/local-history";
-  function readLocalHistory() {
+function readLocalHistory() {
   try {
     const raw = globalThis.localStorage?.getItem(LOCAL_KEY);
     const history = raw ? JSON.parse(raw) : [];
@@ -73,6 +71,10 @@ function writeLocalHistory(history) {
     // sandboxed iframes can block localStorage
   }
 }
+
+function saveLocalRoll(entry) {
+  const existing = readLocalHistory();
+  const others = existing.filter((item) => item.playerId !== entry.playerId);
   const next = [entry, ...others].slice(0, 20);
   writeLocalHistory(next);
   renderHistory(next, state.playerId);
@@ -80,7 +82,7 @@ function writeLocalHistory(history) {
 
 async function saveRoll(entry) {
 const OBR = globalThis.OBR;
-  if (!state.obrReady || !OBR) {    
+  if (!state.obrReady || !OBR) { 
     saveLocalRoll(entry);
     return;
   }

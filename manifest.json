@@ -2,12 +2,11 @@
   "name": "Cabala Dice",
   "version": "1.0.0",
   "manifest_version": 1,
-  "author": "Murilo",
   "action": {
     "title": "Cabala Dice",
     "icon": "/icon.svg",
     "popover": "/index.html",
-    "height": 600,
-    "width": 400
+    "width": 360,
+    "height": 500
   }
 }

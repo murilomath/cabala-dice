@@ -4,7 +4,7 @@
   "manifest_version": 1,
   "author": "Cabala",
   "icon": "icon.svg",
-  "homepage_url": ".",
+  "homepage_url": "https://example.com/cabala-dice",
   "action": {
     "title": "Cabala Dice",
     "icon": "icon.svg",

@@ -4,9 +4,7 @@ import { addLog, listenLogs } from "./modules/log.js"
 
 let dice = 0
 
-window.addEventListener("DOMContentLoaded", async () => {
-
-  await OBR.onReady()
+window.addEventListener("DOMContentLoaded", () => {
 
   updateDice()
 
@@ -28,7 +26,13 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     let result = rollD66()
 
-    let player = (await OBR.player.get()).name
+    let player = "Jogador"
+
+    if (window.OBR) {
+      try {
+        player = (await OBR.player.get()).name
+      } catch {}
+    }
 
     await addLog({
       player,
@@ -55,7 +59,13 @@ async function doRoll(mode) {
 
   let { success, critFail } = countResults(results, mode)
 
-  let player = (await OBR.player.get()).name
+  let player = "Jogador"
+
+  if (window.OBR) {
+    try {
+      player = (await OBR.player.get()).name
+    } catch {}
+  }
 
   await addLog({
     player,

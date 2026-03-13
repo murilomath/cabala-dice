@@ -1,4 +1,4 @@
-import OBR from "https://unpkg.com/@owlbear-rodeo/sdk@2.4.0/build/index.esm.js";
+const OBR = globalThis.OBR;
 
 const META_KEY = "cabala-dice/history";
 const diceCountEl = document.getElementById("dice-count");
@@ -30,9 +30,10 @@ function targetForMode(mode) {
 
 function formatRoll(entry) {
   const rolls = entry.rolls.join(", ");
-  const detail = entry.type === "d66"
-    ? `resultado ${entry.total}`
-    : `sucessos ${entry.successes}, falhas críticas(1) ${entry.critFailures}`;
+  const detail =
+    entry.type === "d66"
+      ? `resultado ${entry.total}`
+      : `sucessos ${entry.successes}, falhas críticas(1) ${entry.critFailures}`;
   return `${entry.playerName}: ${entry.type.toUpperCase()} [${rolls}] → ${detail}`;
 }
 
@@ -150,21 +151,23 @@ function initLocalMode() {
 wireControls();
 initLocalMode();
 
-OBR.onReady(async () => {
-  const player = await OBR.player.getPlayer();
-  state.obrReady = true;
-  state.playerId = player.id;
-  state.playerName = player.name || "Jogador";
+if (OBR?.onReady) {
+  OBR.onReady(async () => {
+    const player = await OBR.player.getPlayer();
+    state.obrReady = true;
+    state.playerId = player.id;
+    state.playerName = player.name || "Jogador";
 
-  const metadata = await OBR.room.getMetadata();
-  const history = Array.isArray(metadata[META_KEY]) ? metadata[META_KEY] : [];
-  renderHistory(history, state.playerId);
+    const metadata = await OBR.room.getMetadata();
+    const history = Array.isArray(metadata[META_KEY]) ? metadata[META_KEY] : [];
+    renderHistory(history, state.playerId);
 
-  const own = history.find((entry) => entry.playerId === state.playerId);
-  if (own) renderOwnResult(own);
+    const own = history.find((entry) => entry.playerId === state.playerId);
+    if (own) renderOwnResult(own);
 
-  OBR.room.onMetadataChange((nextMetadata) => {
-    const nextHistory = Array.isArray(nextMetadata[META_KEY]) ? nextMetadata[META_KEY] : [];
-    renderHistory(nextHistory, state.playerId);
-  });
+ OBR.room.onMetadataChange((nextMetadata) => {
+      const nextHistory = Array.isArray(nextMetadata[META_KEY]) ? nextMetadata[META_KEY] : [];
+      renderHistory(nextHistory, state.playerId);
+    });
 });
+}

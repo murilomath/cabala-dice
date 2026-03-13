@@ -1,88 +1,103 @@
 import OBR from "https://unpkg.com/@owlbear-rodeo/sdk@latest/dist/index.mjs"
-import {rollD6,countResults,rollD66} from "./modules/dice.js"
-import {addLog,listenLogs} from "./modules/log.js"
+import { rollD6, countResults, rollD66 } from "./modules/dice.js"
+import { addLog, listenLogs } from "./modules/log.js"
 
 let dice = 0
 
-document.getElementById("d6").onclick=()=>{
-if(dice<12) dice++
-updateDice()
-}
+window.addEventListener("DOMContentLoaded", async () => {
 
-document.getElementById("cancel").onclick=()=>{
-dice=0
-updateDice()
-}
+  await OBR.onReady()
 
-function updateDice(){
-document.getElementById("dice-count").innerText=dice
-}
+  updateDice()
 
-async function doRoll(mode){
+  document.getElementById("d6").onclick = () => {
+    if (dice < 12) dice++
+    updateDice()
+  }
 
-if(dice==0) return
+  document.getElementById("cancel").onclick = () => {
+    dice = 0
+    updateDice()
+  }
 
-let results = rollD6(dice)
+  document.getElementById("dis").onclick = () => doRoll("dis")
+  document.getElementById("nor").onclick = () => doRoll("nor")
+  document.getElementById("adv").onclick = () => doRoll("adv")
 
-let {success,critFail} = countResults(results,mode)
+  document.getElementById("d66").onclick = async () => {
 
-let player = (await OBR.player.get()).name
+    let result = rollD66()
 
-await addLog({
-player,
-dice,
-mode,
-results,
-success,
-critFail,
-time:Date.now()
+    let player = (await OBR.player.get()).name
+
+    await addLog({
+      player,
+      type: "d66",
+      result,
+      time: Date.now()
+    })
+
+  }
+
+  listenLogs(renderHistory)
+
 })
 
+function updateDice() {
+  document.getElementById("dice-count").innerText = dice
 }
 
-document.getElementById("dis").onclick=()=>doRoll("dis")
-document.getElementById("nor").onclick=()=>doRoll("nor")
-document.getElementById("adv").onclick=()=>doRoll("adv")
+async function doRoll(mode) {
 
-document.getElementById("d66").onclick=async()=>{
+  if (dice == 0) return
 
-let result = rollD66()
+  let results = rollD6(dice)
 
-let player = (await OBR.player.get()).name
+  let { success, critFail } = countResults(results, mode)
 
-await addLog({
-player,
-type:"d66",
-result,
-time:Date.now()
-})
+  let player = (await OBR.player.get()).name
 
-}
-
-listenLogs(renderHistory)
-
-function renderHistory(log){
-
-let html=""
-
-for(let r of log){
-
-if(r.type=="d66"){
-
-html+=`<div>${r.player} rolou d66: ${r.result}</div>`
-
-}else{
-
-html+=`<div>
-${r.player} ${r.dice}d6 ${r.mode}<br>
-${r.results.join(",")}<br>
-Sucessos:${r.success}
-Falhas:${r.critFail}
-</div>`
-}
+  await addLog({
+    player,
+    dice,
+    mode,
+    results,
+    success,
+    critFail,
+    time: Date.now()
+  })
 
 }
 
-document.getElementById("history").innerHTML=html
+function renderHistory(log) {
+
+  let html = ""
+
+  for (let r of log) {
+
+    if (r.type === "d66") {
+
+      html += `
+      <div>
+      <b>${r.player}</b> rolou d66 → ${r.result}
+      </div>
+      `
+
+    } else {
+
+      html += `
+      <div>
+      <b>${r.player}</b> ${r.dice}d6 (${r.mode})<br>
+      ${r.results.join(", ")}<br>
+      Sucessos: ${r.success} |
+      Falhas Críticas: ${r.critFail}
+      </div>
+      <hr>
+      `
+    }
+
+  }
+
+  document.getElementById("history").innerHTML = html
 
 }

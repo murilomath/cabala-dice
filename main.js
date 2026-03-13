@@ -1,5 +1,7 @@
 import OBR from "https://unpkg.com/@owlbear-rodeo/sdk@latest/dist/index.mjs"
 
+window.addEventListener("DOMContentLoaded", () => {
+
 let diceType="d6"
 let diceCount=1
 let mode="normal"
@@ -157,3 +159,5 @@ Sucessos: ${r.success} | Falhas críticas: ${r.crit}
 document.getElementById("history").innerHTML=html
 
 }
+
+})

@@ -1,138 +1,153 @@
 import OBR from "https://unpkg.com/@owlbear-rodeo/sdk@latest/dist/index.mjs"
 
-let dice = 0
+let diceType = "d6"
+let diceCount = 1
+let mode = "normal"
 
-function rollD6(n){
-  let results = []
-  for(let i=0;i<n;i++){
-    results.push(Math.floor(Math.random()*6)+1)
-  }
-  return results
+const META_KEY = "cabala.dice.log"
+
+await OBR.onReady()
+
+document.getElementById("d6").onclick = () => diceType="d6"
+document.getElementById("d66").onclick = () => diceType="d66"
+
+document.getElementById("adv").onclick = () => mode="adv"
+document.getElementById("des").onclick = () => mode="des"
+
+document.getElementById("more").onclick = () =>{
+diceCount=Math.min(12,diceCount+1)
+updateCount()
 }
 
-function countResults(results,mode){
+document.getElementById("less").onclick = () =>{
+diceCount=Math.max(1,diceCount-1)
+updateCount()
+}
 
-  let success = 0
-  let critFail = 0
+document.getElementById("roll").onclick = rollDice
 
-  for(let r of results){
+updateCount()
 
-    if(r==1) critFail++
+function updateCount(){
+document.getElementById("diceCount").innerText=diceCount
+}
 
-    if(mode=="Desvantagem"){
-      if(r==6) success++
-    }
+function d6(){
+return Math.floor(Math.random()*6)+1
+}
 
-    if(mode=="Normal"){
-      if(r>=5) success++
-    }
+function rollDice(){
 
-    if(mode=="Vantagem"){
-      if(r>=4) success++
-    }
+if(diceType==="d66"){
+rollD66()
+return
+}
 
-  }
+let results=[]
+for(let i=0;i<diceCount;i++){
+results.push(d6())
+}
 
-  return {success,critFail}
+let success=0
+let crit=0
+
+for(let r of results){
+
+if(r===1)crit++
+
+if(mode==="normal" && r>=5)success++
+if(mode==="des" && r===6)success++
+if(mode==="adv" && r>=4)success++
+
+}
+
+sendRoll({
+type:"d6",
+dice:diceCount,
+mode,
+results,
+success,
+crit
+})
+
 }
 
 function rollD66(){
-  let d1 = Math.floor(Math.random()*6)+1
-  let d2 = Math.floor(Math.random()*6)+1
-  return d1*10 + d2
-}
 
-let log = []
+let r1=d6()
+let r2=d6()
 
-window.addEventListener("DOMContentLoaded", () => {
+let result=r1*10+r2
 
-  updateDice()
-
-  document.getElementById("d6").onclick = () => {
-    if(dice<12) dice++
-    updateDice()
-  }
-
-  document.getElementById("cancel").onclick = () => {
-    dice=0
-    updateDice()
-  }
-
-  document.getElementById("dis").onclick = () => doRoll("Desvantagem")
-  document.getElementById("nor").onclick = () => doRoll("Normal")
-  document.getElementById("adv").onclick = () => doRoll("Vantagem")
-
-  document.getElementById("d66").onclick = () => {
-
-    let result = rollD66()
-
-    log.unshift({
-      player:"Jogador",
-      type:"d66",
-      result
-    })
-
-    renderHistory()
-
-  }
-
+sendRoll({
+type:"d66",
+result
 })
 
-function updateDice(){
-  document.getElementById("dice-count").innerText=dice
 }
 
-function doRoll(mode){
+async function sendRoll(data){
 
-  if(dice==0) return
+let player=(await OBR.player.get()).name
 
-  let results = rollD6(dice)
+let roll={
+player,
+time:Date.now(),
+...data
+}
 
-  let {success,critFail} = countResults(results,mode)
+let metadata=await OBR.room.getMetadata()
 
-  log.unshift({
-    player:"Jogador",
-    dice,
-    mode,
-    results,
-    success,
-    critFail
-  })
+let log=metadata[META_KEY]||[]
 
-  renderHistory()
+log.unshift(roll)
+
+log=log.slice(0,30)
+
+await OBR.room.setMetadata({
+[META_KEY]:log
+})
 
 }
 
-function renderHistory(){
+OBR.room.onMetadataChange(metadata=>{
+render(metadata[META_KEY]||[])
+})
 
-  let html=""
+async function init(){
+let metadata=await OBR.room.getMetadata()
+render(metadata[META_KEY]||[])
+}
 
-  for(let r of log){
+init()
 
-    if(r.type=="d66"){
+function render(log){
 
-      html+=`
-      <div>
-      <b>${r.player}</b> rolou d66 → ${r.result}
-      </div>
-      <hr>
-      `
+let html=""
 
-    }else{
+for(let r of log){
 
-      html+=`
-      <div>
-      <b>${r.player}</b> ${r.dice}d6 (${r.mode})<br>
-      [ ${r.results.join(", ")} ]<br>
-      Sucessos: ${r.success} |
-      Falhas Críticas: ${r.critFail}
-      </div>
-      <hr>
-      `
-    }
+if(r.type==="d66"){
 
-  }
+html+=`
+<div class="roll">
+<b>${r.player}</b> d66 → ${r.result}
+</div>
+`
 
-  document.getElementById("history").innerHTML=html
+}else{
+
+html+=`
+<div class="roll">
+<b>${r.player}</b> ${r.dice}d6 (${r.mode})<br>
+[ ${r.results.join(", ")} ]<br>
+Sucessos: ${r.success} | Falhas críticas: ${r.crit}
+</div>
+`
+}
+
+}
+
+document.getElementById("history").innerHTML=html
 
 }

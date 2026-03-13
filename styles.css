@@ -7,12 +7,17 @@ body {
   margin: 0;
   background: #16181f;
   color: #e8ebf3;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .app {
+  box-sizing: border-box;
+  height: 100vh;
   padding: 12px;
   display: grid;
   gap: 12px;
+  overflow-y: auto;
 }
 
 h1,
@@ -37,6 +42,12 @@ h2 {
   gap: 8px;
 }
 
+.controls {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -1,6 +1,6 @@
 {
   "name": "Cabala Dice",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "manifest_version": 1,
   "author": "Cabala",
   "icon": "https://cdn.jsdelivr.net/gh/murilomath/cabala-dice@main/icon.svg",
@@ -8,6 +8,8 @@
   "action": {
     "title": "Cabala Dice",
     "icon": "https://cdn.jsdelivr.net/gh/murilomath/cabala-dice@main/icon.svg",
-    "popover": "https://murilomath.github.io/cabala-dice/popover.html?v=1.0.5"
+    "popover": "https://murilomath.github.io/cabala-dice/popover.html?v=1.0.6"
+    "width": 420,
+    "height": 680
   }
 }

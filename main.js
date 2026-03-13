@@ -1,40 +1,38 @@
 import OBR from "https://unpkg.com/@owlbear-rodeo/sdk@latest/dist/index.mjs"
 
-let diceType = "d6"
-let diceCount = 1
-let mode = "normal"
+let diceType="d6"
+let diceCount=1
+let mode="normal"
 
-const META_KEY = "cabala.dice.log"
+const META_KEY="cabala.dice.log"
 
-await OBR.onReady()
-
-document.getElementById("d6").onclick = () => diceType="d6"
-document.getElementById("d66").onclick = () => diceType="d66"
-
-document.getElementById("adv").onclick = () => mode="adv"
-document.getElementById("des").onclick = () => mode="des"
-
-document.getElementById("more").onclick = () =>{
-diceCount=Math.min(12,diceCount+1)
-updateCount()
+function d6(){
+return Math.floor(Math.random()*6)+1
 }
-
-document.getElementById("less").onclick = () =>{
-diceCount=Math.max(1,diceCount-1)
-updateCount()
-}
-
-document.getElementById("roll").onclick = rollDice
-
-updateCount()
 
 function updateCount(){
 document.getElementById("diceCount").innerText=diceCount
 }
 
-function d6(){
-return Math.floor(Math.random()*6)+1
+document.getElementById("d6").onclick=()=>diceType="d6"
+document.getElementById("d66").onclick=()=>diceType="d66"
+
+document.getElementById("adv").onclick=()=>mode="adv"
+document.getElementById("des").onclick=()=>mode="des"
+
+document.getElementById("more").onclick=()=>{
+diceCount=Math.min(12,diceCount+1)
+updateCount()
 }
+
+document.getElementById("less").onclick=()=>{
+diceCount=Math.max(1,diceCount-1)
+updateCount()
+}
+
+document.getElementById("roll").onclick=rollDice
+
+updateCount()
 
 function rollDice(){
 
@@ -44,6 +42,7 @@ return
 }
 
 let results=[]
+
 for(let i=0;i<diceCount;i++){
 results.push(d6())
 }
@@ -88,7 +87,11 @@ result
 
 async function sendRoll(data){
 
-let player=(await OBR.player.get()).name
+let player="Jogador"
+
+try{
+player=(await OBR.player.get()).name
+}catch{}
 
 let roll={
 player,
@@ -96,30 +99,33 @@ time:Date.now(),
 ...data
 }
 
-let metadata=await OBR.room.getMetadata()
-
-let log=metadata[META_KEY]||[]
+let log=window.localLog||[]
 
 log.unshift(roll)
 
 log=log.slice(0,30)
 
-await OBR.room.setMetadata({
-[META_KEY]:log
-})
+window.localLog=log
 
-}
+render(log)
 
-OBR.room.onMetadataChange(metadata=>{
-render(metadata[META_KEY]||[])
-})
+try{
 
-async function init(){
 let metadata=await OBR.room.getMetadata()
-render(metadata[META_KEY]||[])
-}
 
-init()
+let roomLog=metadata[META_KEY]||[]
+
+roomLog.unshift(roll)
+
+roomLog=roomLog.slice(0,30)
+
+await OBR.room.setMetadata({
+[META_KEY]:roomLog
+})
+
+}catch{}
+
+}
 
 function render(log){
 

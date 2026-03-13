@@ -1,13 +1,13 @@
 {
   "name": "Cabala Dice",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "manifest_version": 1,
   "author": "Cabala",
-  "icon": "https://murilomath.github.io/cabala-dice/icon.svg",
+  "icon": "https://cdn.jsdelivr.net/gh/murilomath/cabala-dice@main/icon.svg",
   "homepage_url": "https://murilomath.github.io/cabala-dice/",
   "action": {
     "title": "Cabala Dice",
-    "icon": "https://murilomath.github.io/cabala-dice/icon.svg",
-    "popover": "https://murilomath.github.io/cabala-dice/index.html"
+    "icon": "https://cdn.jsdelivr.net/gh/murilomath/cabala-dice@main/icon.svg",
+    "popover": "https://cdn.jsdelivr.net/gh/murilomath/cabala-dice@main/index.html?v=1.0.3"
   }
 }

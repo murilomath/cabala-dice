@@ -11,8 +11,9 @@ const state = {
   type: "d6",
   mode: "normal",
   diceCount: 1,
-  playerId: null,
+  playerId: "local-player",
   playerName: "Jogador",
+  obrReady: false,
 };
 
 const rollDie = (sides) => Math.floor(Math.random() * sides) + 1;
@@ -53,7 +54,21 @@ function renderHistory(history, ownId) {
   });
 }
 
+function saveLocalRoll(entry) {
+  const key = "cabala-dice/local-history";
+  const raw = window.localStorage.getItem(key);
+  const existing = raw ? JSON.parse(raw) : [];
+  const others = existing.filter((item) => item.playerId !== entry.playerId);
+  const next = [entry, ...others].slice(0, 20);
+  window.localStorage.setItem(key, JSON.stringify(next));
+  renderHistory(next, state.playerId);
+}
+
 async function saveRoll(entry) {
+  if (!state.obrReady) {
+    saveLocalRoll(entry);
+    return;
+  }
   const metadata = await OBR.room.getMetadata();
   const existing = Array.isArray(metadata[META_KEY]) ? metadata[META_KEY] : [];
   const others = existing.filter((item) => item.playerId !== entry.playerId);
@@ -124,12 +139,22 @@ function wireControls() {
   });
 }
 
+function initLocalMode() {
+  const raw = window.localStorage.getItem("cabala-dice/local-history");
+  const history = raw ? JSON.parse(raw) : [];
+  renderHistory(history, state.playerId);
+  const own = history.find((entry) => entry.playerId === state.playerId);
+  if (own) renderOwnResult(own);
+}
+
+wireControls();
+initLocalMode();
+
 OBR.onReady(async () => {
   const player = await OBR.player.getPlayer();
+  state.obrReady = true;
   state.playerId = player.id;
   state.playerName = player.name || "Jogador";
-
-  wireControls();
 
   const metadata = await OBR.room.getMetadata();
   const history = Array.isArray(metadata[META_KEY]) ? metadata[META_KEY] : [];

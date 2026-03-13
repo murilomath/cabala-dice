@@ -1,0 +1,13 @@
+{
+  "name": "Cabala Dice",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "author": "Cabala",
+  "icon": "icon.svg",
+  "homepage_url": ".",
+  "action": {
+    "title": "Cabala Dice",
+    "icon": "icon.svg",
+    "popover": "index.html"
+  }
+}

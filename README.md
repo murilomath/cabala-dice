@@ -6,10 +6,10 @@ Extensão de rolagem para Owlbear Rodeo.
 
 Use a URL **completa** do manifesto (CDN para evitar 404 em iframe do Owlbear):
 
-- `https://cdn.jsdelivr.net/gh/murilomath/cabala-dice@main/manifest.json`
-
-Manifesto alternativo (GitHub Pages):
 - `https://murilomath.github.io/cabala-dice/manifest.json`
+
+Manifesto alternativo (CDN):
+- `https://cdn.jsdelivr.net/gh/murilomath/cabala-dice@main/manifest.json`
 
 Se você usar só `murilomath.github.io` ou só a página inicial do repositório, o Owlbear não consegue localizar o `manifest.json` e retorna erro de carregamento.
 
@@ -27,3 +27,8 @@ Para evitar `404` no pop-up da extensão dentro da sala do Owlbear, o `manifest.
 Se você já tinha a extensão instalada, remova e adicione novamente usando:
 
 - `https://murilomath.github.io/cabala-dice/manifest.json`
+
+## Ajuste de compatibilidade no popover
+
+Se o Owlbear exibir o conteúdo HTML bruto dentro da janela da extensão, use a versão mais recente do manifesto.
+Nesta versão, o `action.popover` aponta para o GitHub Pages (`murilomath.github.io`) para evitar problemas de renderização via CDN em alguns ambientes do Owlbear.

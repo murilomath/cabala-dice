@@ -4,8 +4,11 @@ Extensão de rolagem para Owlbear Rodeo.
 
 ## URL correta para instalar no Owlbear
 
-Use a URL **completa** do manifesto:
+Use a URL **completa** do manifesto (CDN para evitar 404 em iframe do Owlbear):
 
+- `https://cdn.jsdelivr.net/gh/murilomath/cabala-dice@main/manifest.json`
+
+Manifesto alternativo (GitHub Pages):
 - `https://murilomath.github.io/cabala-dice/manifest.json`
 
 Se você usar só `murilomath.github.io` ou só a página inicial do repositório, o Owlbear não consegue localizar o `manifest.json` e retorna erro de carregamento.

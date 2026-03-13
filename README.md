@@ -32,3 +32,8 @@ Se você já tinha a extensão instalada, remova e adicione novamente usando:
 
 Se o Owlbear exibir o conteúdo HTML bruto dentro da janela da extensão, use a versão mais recente do manifesto.
 Nesta versão, o `action.popover` aponta para o GitHub Pages (`murilomath.github.io`) para evitar problemas de renderização via CDN em alguns ambientes do Owlbear.
+
+
+## Popover dedicado
+
+Para evitar que o Owlbear abra a página `index.html` do site em vez da interface da extensão, o manifesto agora aponta para `popover.html`, um arquivo dedicado da UI da extensão.

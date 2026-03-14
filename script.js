@@ -3,6 +3,7 @@ const LEGACY_META_KEY = "cabala-dice/history";
 const LOCAL_KEY_PREFIX = "cabala-dice/local-history";
 const LOCAL_PLAYER_KEY = "cabala-dice/player";
 const ROLL_BROADCAST_CHANNEL = "cabala-dice/roll";
+const MAX_HISTORY_ENTRIES = 50;
 const diceCountEl = document.getElementById("dice-count");
 const resultEl = document.getElementById("result");
 const historyListEl = document.getElementById("history-list");
@@ -17,7 +18,7 @@ const state = {
   playerName: "Jogador",
   roomId: "default-room",
   obrReady: false,
-  historyByPlayer: new Map(),
+  historyById: new Map(),
   obrRoomMetadata: {},
   obrPartyPlayers: [],
 };
@@ -35,19 +36,31 @@ function getPlayerMetaKey(roomId, playerId) {
   return `${META_KEY_PREFIX}/${roomId}/player/${playerId}`;
 }
 
+function getRoomHistoryMetaKey(roomId) {
+  return `${META_KEY_PREFIX}/${roomId}/history`;
+}
+
+function getEntryKey(entry) {
+  const rolls = Array.isArray(entry?.rolls) ? entry.rolls.join(",") : "";
+  return `${entry?.playerId || "unknown"}-${entry?.timestamp || 0}-${entry?.type || ""}-${rolls}`;
+}
+
 function readRoomHistoryFromMetadata(metadata, roomId) {
   const prefix = `${META_KEY_PREFIX}/${roomId}/player/`;
+  const sharedHistoryKey = getRoomHistoryMetaKey(roomId);
   const entries = Object.entries(metadata)
     .filter(([key]) => key.startsWith(prefix))
     .map(([, value]) => value)
     .filter((value) => value && typeof value === "object");
 
-  if (entries.length) {
-    return entries.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
+  const sharedHistory = Array.isArray(metadata[sharedHistoryKey]) ? metadata[sharedHistoryKey] : [];
+
+  if (entries.length || sharedHistory.length) {
+    return dedupeAndSortHistory([...entries, ...sharedHistory]);
   }
 
   const legacy = Array.isArray(metadata[LEGACY_META_KEY]) ? metadata[LEGACY_META_KEY] : [];
-  return legacy.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
+  return dedupeAndSortHistory(legacy);
 }
 
 function readPartyHistory(players, roomId) {
@@ -57,7 +70,7 @@ function readPartyHistory(players, roomId) {
     .flatMap((metadata) =>
       Object.entries(metadata)
         .filter(([key]) => key.startsWith(keyPrefix))
-        .map(([, value]) => value)
+        .flatMap(([, value]) => (Array.isArray(value) ? value : [value]))
     )
     .filter((value) => value && typeof value === "object");
 }
@@ -109,35 +122,31 @@ function renderHistory(history, ownId) {
 }
 
 function dedupeAndSortHistory(history) {
-  const byPlayer = new Map();
+  const byId = new Map();
   history.forEach((entry) => {
-    if (!entry?.playerId) return;
-    const existing = byPlayer.get(entry.playerId);
-    if (!existing || (entry.timestamp ?? 0) > (existing.timestamp ?? 0)) {
-      byPlayer.set(entry.playerId, entry);
-    }
+    if (!entry?.playerId || !Array.isArray(entry?.rolls)) return;
+    byId.set(getEntryKey(entry), entry);
   });
 
-  return [...byPlayer.values()]
+  return [...byId.values()]
     .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
-    .slice(0, 20);
+    .slice(0, MAX_HISTORY_ENTRIES);
 }
 
 function setHistory(history) {
-  state.historyByPlayer = new Map(history.map((entry) => [entry.playerId, entry]));
-  renderHistory(history, state.playerId);
+  const next = dedupeAndSortHistory(history);
+  state.historyById = new Map(next.map((entry) => [getEntryKey(entry), entry]));
+  renderHistory(next, state.playerId);
 }
 
 function upsertHistoryEntry(entry) {
   if (!entry?.playerId) return;
-  const existing = state.historyByPlayer.get(entry.playerId);
-  if (existing && (existing.timestamp ?? 0) >= (entry.timestamp ?? 0)) return;
+  const key = getEntryKey(entry);
+  if (state.historyById.has(key)) return;
 
-  state.historyByPlayer.set(entry.playerId, entry);
-  const sorted = [...state.historyByPlayer.values()]
-    .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
-    .slice(0, 20);
-  state.historyByPlayer = new Map(sorted.map((item) => [item.playerId, item]));
+  state.historyById.set(key, entry);
+  const sorted = dedupeAndSortHistory([...state.historyById.values()]);
+  state.historyById = new Map(sorted.map((item) => [getEntryKey(item), item]));
   renderHistory(sorted, state.playerId);
 }
 
@@ -174,6 +183,7 @@ async function saveRoll(entry) {
   }
   
   const key = getPlayerMetaKey(state.roomId, state.playerId);
+  const roomHistoryKey = getRoomHistoryMetaKey(state.roomId);
   const writeOperations = [];
 
   if (OBR.player?.setMetadata) {
@@ -181,7 +191,12 @@ async function saveRoll(entry) {
   }
 
   if (OBR.room?.setMetadata) {
-    writeOperations.push(OBR.room.setMetadata({ [key]: entry }));
+    const roomHistory = Array.isArray(state.obrRoomMetadata?.[roomHistoryKey])
+      ? state.obrRoomMetadata[roomHistoryKey]
+      : [];
+
+    const nextRoomHistory = dedupeAndSortHistory([entry, ...roomHistory]);
+    writeOperations.push(OBR.room.setMetadata({ [key]: entry, [roomHistoryKey]: nextRoomHistory }));
   }
 
   await Promise.allSettled(writeOperations);

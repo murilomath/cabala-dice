@@ -2,6 +2,7 @@ const META_KEY_PREFIX = "cabala-dice/room";
 const LEGACY_META_KEY = "cabala-dice/history";
 const LOCAL_KEY_PREFIX = "cabala-dice/local-history";
 const LOCAL_PLAYER_KEY = "cabala-dice/player";
+const ROLL_BROADCAST_CHANNEL = "cabala-dice/roll";
 const diceCountEl = document.getElementById("dice-count");
 const resultEl = document.getElementById("result");
 const historyListEl = document.getElementById("history-list");
@@ -16,6 +17,7 @@ const state = {
   playerName: "Jogador",
   roomId: "default-room",
   obrReady: false,
+  historyByPlayer: new Map(),
 };
 
 function getLocalRoomId() {
@@ -85,6 +87,39 @@ function renderHistory(history, ownId) {
   });
 }
 
+function dedupeAndSortHistory(history) {
+  const byPlayer = new Map();
+  history.forEach((entry) => {
+    if (!entry?.playerId) return;
+    const existing = byPlayer.get(entry.playerId);
+    if (!existing || (entry.timestamp ?? 0) > (existing.timestamp ?? 0)) {
+      byPlayer.set(entry.playerId, entry);
+    }
+  });
+
+  return [...byPlayer.values()]
+    .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
+    .slice(0, 20);
+}
+
+function setHistory(history) {
+  state.historyByPlayer = new Map(history.map((entry) => [entry.playerId, entry]));
+  renderHistory(history, state.playerId);
+}
+
+function upsertHistoryEntry(entry) {
+  if (!entry?.playerId) return;
+  const existing = state.historyByPlayer.get(entry.playerId);
+  if (existing && (existing.timestamp ?? 0) >= (entry.timestamp ?? 0)) return;
+
+  state.historyByPlayer.set(entry.playerId, entry);
+  const sorted = [...state.historyByPlayer.values()]
+    .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
+    .slice(0, 20);
+  state.historyByPlayer = new Map(sorted.map((item) => [item.playerId, item]));
+  renderHistory(sorted, state.playerId);
+}
+
 function readLocalHistory() {
   try {
     const raw = globalThis.localStorage?.getItem(getLocalHistoryKey(state.roomId));
@@ -105,22 +140,29 @@ function writeLocalHistory(history) {
 
 function saveLocalRoll(entry) {
   const existing = readLocalHistory();
-  const others = existing.filter((item) => item.playerId !== entry.playerId);
-  const next = [entry, ...others].slice(0, 20);
+  const next = dedupeAndSortHistory([entry, ...existing]);
   writeLocalHistory(next);
-  renderHistory(next, state.playerId);
+  setHistory(next);
 }
 
 async function saveRoll(entry) {
-const OBR = globalThis.OBR;
+  const OBR = globalThis.OBR;
   if (!state.obrReady || !OBR) { 
     saveLocalRoll(entry);
     return;
   }
   
-  const metadata = await OBR.room.getMetadata();
   const key = getPlayerMetaKey(state.roomId, state.playerId);
-  await OBR.room.setMetadata({ ...metadata, [key]: entry });
+  await OBR.room.setMetadata({ [key]: entry });
+
+  if (OBR.broadcast?.sendMessage) {
+    await OBR.broadcast.sendMessage(ROLL_BROADCAST_CHANNEL, {
+      roomId: state.roomId,
+      entry,
+    });
+  }
+
+  upsertHistoryEntry(entry);
 }
 
 function makeRoll() {
@@ -210,7 +252,7 @@ function initLocalMode() {
   }
 
   const history = readLocalHistory();
-  renderHistory(history, state.playerId);
+  setHistory(history);
   const own = history.find((entry) => entry.playerId === state.playerId);
   if (own) renderOwnResult(own);
 }
@@ -233,17 +275,25 @@ function initObrWhenReady(attempt = 0) {
     state.roomId = room?.id || "default-room";
 
     const metadata = await OBR.room.getMetadata();
-    const history = readRoomHistoryFromMetadata(metadata, state.roomId);
-    renderHistory(history, state.playerId);
+    const history = dedupeAndSortHistory(readRoomHistoryFromMetadata(metadata, state.roomId));
+    setHistory(history);
 
     const own = history.find((entry) => entry.playerId === state.playerId);
     if (own) renderOwnResult(own);
 
     OBR.room.onMetadataChange((nextMetadata) => {
-      const nextHistory = readRoomHistoryFromMetadata(nextMetadata, state.roomId);
-      renderHistory(nextHistory, state.playerId);
+      const nextHistory = dedupeAndSortHistory(readRoomHistoryFromMetadata(nextMetadata, state.roomId));
+      setHistory(nextHistory);
     });
   });
+
+  if (OBR.broadcast?.onMessage) {
+      OBR.broadcast.onMessage(ROLL_BROADCAST_CHANNEL, (message) => {
+        const data = message?.data;
+        if (!data || data.roomId !== state.roomId || !data.entry) return;
+        upsertHistoryEntry(data.entry);
+      });
+    }
 }
 
 wireControls();

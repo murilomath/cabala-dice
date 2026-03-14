@@ -1,5 +1,7 @@
-const META_KEY = "cabala-dice/history";
-const LOCAL_KEY = "cabala-dice/local-history";
+const META_KEY_PREFIX = "cabala-dice/room";
+const LEGACY_META_KEY = "cabala-dice/history";
+const LOCAL_KEY_PREFIX = "cabala-dice/local-history";
+const LOCAL_PLAYER_KEY = "cabala-dice/player";
 const diceCountEl = document.getElementById("dice-count");
 const resultEl = document.getElementById("result");
 const historyListEl = document.getElementById("history-list");
@@ -12,8 +14,37 @@ const state = {
   diceCount: 1,
   playerId: "local-player",
   playerName: "Jogador",
+  roomId: "default-room",
   obrReady: false,
 };
+
+function getLocalRoomId() {
+  const params = new URLSearchParams(globalThis.location?.search ?? "");
+  return params.get("room") || "default-room";
+}
+
+function getLocalHistoryKey(roomId) {
+  return `${LOCAL_KEY_PREFIX}/${roomId}`;
+}
+
+function getPlayerMetaKey(roomId, playerId) {
+  return `${META_KEY_PREFIX}/${roomId}/player/${playerId}`;
+}
+
+function readRoomHistoryFromMetadata(metadata, roomId) {
+  const prefix = `${META_KEY_PREFIX}/${roomId}/player/`;
+  const entries = Object.entries(metadata)
+    .filter(([key]) => key.startsWith(prefix))
+    .map(([, value]) => value)
+    .filter((value) => value && typeof value === "object");
+
+  if (entries.length) {
+    return entries.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
+  }
+
+  const legacy = Array.isArray(metadata[LEGACY_META_KEY]) ? metadata[LEGACY_META_KEY] : [];
+  return legacy.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
+}
 
 const rollDie = (sides) => Math.floor(Math.random() * sides) + 1;
 
@@ -56,7 +87,7 @@ function renderHistory(history, ownId) {
 
 function readLocalHistory() {
   try {
-    const raw = globalThis.localStorage?.getItem(LOCAL_KEY);
+    const raw = globalThis.localStorage?.getItem(getLocalHistoryKey(state.roomId));
     const history = raw ? JSON.parse(raw) : [];
     return Array.isArray(history) ? history : [];
   } catch {
@@ -66,7 +97,7 @@ function readLocalHistory() {
 
 function writeLocalHistory(history) {
   try {
-    globalThis.localStorage?.setItem(LOCAL_KEY, JSON.stringify(history));
+    globalThis.localStorage?.setItem(getLocalHistoryKey(state.roomId), JSON.stringify(history));
   } catch {
     // sandboxed iframes can block localStorage
   }
@@ -88,9 +119,8 @@ const OBR = globalThis.OBR;
   }
   
   const metadata = await OBR.room.getMetadata();
-  const existing = Array.isArray(metadata[META_KEY]) ? metadata[META_KEY] : [];
-  const others = existing.filter((item) => item.playerId !== entry.playerId);
-  await OBR.room.setMetadata({ ...metadata, [META_KEY]: [entry, ...others] });
+  const key = getPlayerMetaKey(state.roomId, state.playerId);
+  await OBR.room.setMetadata({ ...metadata, [key]: entry });
 }
 
 function makeRoll() {
@@ -158,6 +188,27 @@ function wireControls() {
 }
 
 function initLocalMode() {
+  state.roomId = getLocalRoomId();
+  try {
+    const raw = globalThis.localStorage?.getItem(LOCAL_PLAYER_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (parsed?.id) {
+      state.playerId = parsed.id;
+      state.playerName = parsed.name || "Jogador";
+    } else {
+      const generated = {
+        id: `web-${globalThis.crypto?.randomUUID?.() || Date.now()}`,
+        name: "Jogador (web)",
+      };
+      state.playerId = generated.id;
+      state.playerName = generated.name;
+      globalThis.localStorage?.setItem(LOCAL_PLAYER_KEY, JSON.stringify(generated));
+    }
+  } catch {
+    state.playerId = `web-${Date.now()}`;
+    state.playerName = "Jogador (web)";
+  }
+
   const history = readLocalHistory();
   renderHistory(history, state.playerId);
   const own = history.find((entry) => entry.playerId === state.playerId);
@@ -175,19 +226,21 @@ function initObrWhenReady(attempt = 0) {
   
   OBR.onReady(async () => {
     const player = await OBR.player.getPlayer();
+    const room = await OBR.room.getRoom();
     state.obrReady = true;
     state.playerId = player.id;
     state.playerName = player.name || "Jogador";
+    state.roomId = room?.id || "default-room";
 
     const metadata = await OBR.room.getMetadata();
-    const history = Array.isArray(metadata[META_KEY]) ? metadata[META_KEY] : [];
+    const history = readRoomHistoryFromMetadata(metadata, state.roomId);
     renderHistory(history, state.playerId);
 
     const own = history.find((entry) => entry.playerId === state.playerId);
     if (own) renderOwnResult(own);
 
     OBR.room.onMetadataChange((nextMetadata) => {
-      const nextHistory = Array.isArray(nextMetadata[META_KEY]) ? nextMetadata[META_KEY] : [];
+      const nextHistory = readRoomHistoryFromMetadata(nextMetadata, state.roomId);
       renderHistory(nextHistory, state.playerId);
     });
   });

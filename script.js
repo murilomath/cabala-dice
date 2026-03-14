@@ -18,6 +18,8 @@ const state = {
   roomId: "default-room",
   obrReady: false,
   historyByPlayer: new Map(),
+  obrRoomMetadata: {},
+  obrPartyPlayers: [],
 };
 
 function getLocalRoomId() {
@@ -46,6 +48,25 @@ function readRoomHistoryFromMetadata(metadata, roomId) {
 
   const legacy = Array.isArray(metadata[LEGACY_META_KEY]) ? metadata[LEGACY_META_KEY] : [];
   return legacy.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
+}
+
+function readPartyHistory(players, roomId) {
+  const keyPrefix = `${META_KEY_PREFIX}/${roomId}/player/`;
+  return players
+    .map((player) => player?.metadata || {})
+    .flatMap((metadata) =>
+      Object.entries(metadata)
+        .filter(([key]) => key.startsWith(keyPrefix))
+        .map(([, value]) => value)
+    )
+    .filter((value) => value && typeof value === "object");
+}
+
+function getObrHistory() {
+  return dedupeAndSortHistory([
+    ...readRoomHistoryFromMetadata(state.obrRoomMetadata, state.roomId),
+    ...readPartyHistory(state.obrPartyPlayers, state.roomId),
+  ]);
 }
 
 const rollDie = (sides) => Math.floor(Math.random() * sides) + 1;
@@ -153,7 +174,17 @@ async function saveRoll(entry) {
   }
   
   const key = getPlayerMetaKey(state.roomId, state.playerId);
-  await OBR.room.setMetadata({ [key]: entry });
+  const writeOperations = [];
+
+  if (OBR.player?.setMetadata) {
+    writeOperations.push(OBR.player.setMetadata({ [key]: entry }));
+  }
+
+  if (OBR.room?.setMetadata) {
+    writeOperations.push(OBR.room.setMetadata({ [key]: entry }));
+  }
+
+  await Promise.allSettled(writeOperations);
 
   if (OBR.broadcast?.sendMessage) {
     await OBR.broadcast.sendMessage(ROLL_BROADCAST_CHANNEL, {
@@ -274,17 +305,29 @@ function initObrWhenReady(attempt = 0) {
     state.playerName = player.name || "Jogador";
     state.roomId = room?.id || "default-room";
 
-    const metadata = await OBR.room.getMetadata();
-    const history = dedupeAndSortHistory(readRoomHistoryFromMetadata(metadata, state.roomId));
+    state.obrRoomMetadata = await OBR.room.getMetadata();
+
+    if (OBR.party?.getPlayers) {
+      state.obrPartyPlayers = await OBR.party.getPlayers();
+    }
+
+    const history = getObrHistory();
     setHistory(history);
 
     const own = history.find((entry) => entry.playerId === state.playerId);
     if (own) renderOwnResult(own);
 
     OBR.room.onMetadataChange((nextMetadata) => {
-      const nextHistory = dedupeAndSortHistory(readRoomHistoryFromMetadata(nextMetadata, state.roomId));
-      setHistory(nextHistory);
+      state.obrRoomMetadata = nextMetadata;
+      setHistory(getObrHistory());
     });
+
+    if (OBR.party?.onChange) {
+      OBR.party.onChange((players) => {
+        state.obrPartyPlayers = players;
+        setHistory(getObrHistory());
+      });
+    }
   });
 
   if (OBR.broadcast?.onMessage) {

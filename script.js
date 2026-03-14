@@ -2,6 +2,7 @@ const META_KEY_PREFIX = "cabala-dice/room";
 const LEGACY_META_KEY = "cabala-dice/history";
 const LOCAL_KEY_PREFIX = "cabala-dice/local-history";
 const LOCAL_PLAYER_KEY = "cabala-dice/player";
+const LOCAL_ROLL_BROADCAST_CHANNEL = "cabala-dice/local-roll";
 const ROLL_BROADCAST_CHANNEL = "cabala-dice/roll";
 const MAX_HISTORY_ENTRIES = 50;
 const diceCountEl = document.getElementById("dice-count");
@@ -21,6 +22,7 @@ const state = {
   historyById: new Map(),
   obrRoomMetadata: {},
   obrPartyPlayers: [],
+  localBroadcastChannel: null,
 };
 
 function getLocalRoomId() {
@@ -150,6 +152,33 @@ function upsertHistoryEntry(entry) {
   renderHistory(sorted, state.playerId);
 }
 
+function notifyIncomingRoll(entry) {
+  if (entry?.playerId === state.playerId) return;
+  if (!globalThis.Notification || globalThis.Notification.permission !== "granted") return;
+  if (!globalThis.document?.hidden) return;
+
+  const detail =
+    entry.type === "d66"
+      ? `d66 → ${entry.total}`
+      : `d6 (${entry.mode || "normal"}) → ${entry.successes} sucessos`;
+
+  try {
+    new Notification("Nova rolagem na mesa", {
+      body: `${entry.playerName || "Jogador"}: ${detail}`,
+      tag: getEntryKey(entry),
+    });
+  } catch {
+    // Browsers may block notifications in embedded/sandboxed contexts.
+  }
+}
+
+function handleIncomingEntry(entry) {
+  const alreadyExists = state.historyById.has(getEntryKey(entry));
+  upsertHistoryEntry(entry);
+  if (!alreadyExists) {
+    notifyIncomingRoll(entry);
+  }
+}
 function readLocalHistory() {
   try {
     const raw = globalThis.localStorage?.getItem(getLocalHistoryKey(state.roomId));
@@ -173,6 +202,13 @@ function saveLocalRoll(entry) {
   const next = dedupeAndSortHistory([entry, ...existing]);
   writeLocalHistory(next);
   setHistory(next);
+
+  if (state.localBroadcastChannel) {
+    state.localBroadcastChannel.postMessage({
+      roomId: state.roomId,
+      entry,
+    });
+  }
 }
 
 async function saveRoll(entry) {
@@ -208,7 +244,7 @@ async function saveRoll(entry) {
     });
   }
 
-  upsertHistoryEntry(entry);
+  handleIncomingEntry(entry);
 }
 
 function makeRoll() {
@@ -301,6 +337,21 @@ function initLocalMode() {
   setHistory(history);
   const own = history.find((entry) => entry.playerId === state.playerId);
   if (own) renderOwnResult(own);
+
+  if (globalThis.BroadcastChannel) {
+    state.localBroadcastChannel = new BroadcastChannel(LOCAL_ROLL_BROADCAST_CHANNEL);
+    state.localBroadcastChannel.onmessage = (event) => {
+      const data = event?.data;
+      if (!data || data.roomId !== state.roomId || !data.entry) return;
+      handleIncomingEntry(data.entry);
+    };
+  }
+
+  globalThis.addEventListener("storage", (event) => {
+    if (event.key !== getLocalHistoryKey(state.roomId)) return;
+    const latest = readLocalHistory();
+    setHistory(latest);
+  });
 }
 
 function initObrWhenReady(attempt = 0) {
@@ -349,7 +400,7 @@ function initObrWhenReady(attempt = 0) {
       OBR.broadcast.onMessage(ROLL_BROADCAST_CHANNEL, (message) => {
         const data = message?.data;
         if (!data || data.roomId !== state.roomId || !data.entry) return;
-        upsertHistoryEntry(data.entry);
+        handleIncomingEntry(data.entry);
       });
     }
 }

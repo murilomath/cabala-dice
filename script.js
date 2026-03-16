@@ -5,6 +5,7 @@ const LOCAL_PLAYER_KEY = "cabala-dice/player";
 const LOCAL_ROLL_BROADCAST_CHANNEL = "cabala-dice/local-roll";
 const ROLL_BROADCAST_CHANNEL = "cabala-dice/roll";
 const MAX_HISTORY_ENTRIES = 50;
+const ROLL_BROADCAST_VERSION = 1;
 const diceCountEl = document.getElementById("dice-count");
 const resultEl = document.getElementById("result");
 const historyListEl = document.getElementById("history-list");
@@ -238,10 +239,19 @@ async function saveRoll(entry) {
   await Promise.allSettled(writeOperations);
 
   if (OBR.broadcast?.sendMessage) {
-    await OBR.broadcast.sendMessage(ROLL_BROADCAST_CHANNEL, {
+    const payload = {
+      version: ROLL_BROADCAST_VERSION,
       roomId: state.roomId,
       entry,
-    });
+    };
+
+    try {
+      await OBR.broadcast.sendMessage(ROLL_BROADCAST_CHANNEL, payload, {
+        destination: "ROOM",
+      });
+    } catch {
+      await OBR.broadcast.sendMessage(ROLL_BROADCAST_CHANNEL, payload);
+    }
   }
 
   handleIncomingEntry(entry);
@@ -394,15 +404,14 @@ function initObrWhenReady(attempt = 0) {
         setHistory(getObrHistory());
       });
     }
-  });
-
-  if (OBR.broadcast?.onMessage) {
+    if (OBR.broadcast?.onMessage) {
       OBR.broadcast.onMessage(ROLL_BROADCAST_CHANNEL, (message) => {
-        const data = message?.data;
+        const data = message?.data ?? message;
         if (!data || data.roomId !== state.roomId || !data.entry) return;
         handleIncomingEntry(data.entry);
       });
     }
+  });
 }
 
 wireControls();
